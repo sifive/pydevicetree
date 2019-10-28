@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from pyparsing import *
 
 node_name = Word(alphanums + ",.-+_") ^ Literal("/")
