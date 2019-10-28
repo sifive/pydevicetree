@@ -23,7 +23,8 @@ property_assignment = property_name + Optional(Literal("=") + (array ^ bytestrin
 
 node_opener = Optional(label_creation) + Combine(node_name + Optional(Literal("@") + unit_address)) + Literal("{")
 node_closer = Literal("}") + Literal(";")
-node_definition = nestedExpr(node_opener, node_closer, content=(property_assignment ^ directive))
+node_definition = Forward()
+node_definition << node_opener + ZeroOrMore(property_assignment ^ directive ^ node_definition) + node_closer
 
 devicetree = ZeroOrMore(directive ^ node_definition)
 
