@@ -19,7 +19,7 @@ arith_expr = integer
 
 array = Literal("<") + ZeroOrMore(arith_expr ^ string ^ reference ^ label_creation) + Literal(">")
 bytestring = Literal("[") + (Word(hexnums) ^ label_creation) + Literal("]")
-property_assignment = property_name + Literal("=") + (array ^ bytestring ^ stringlist ^ label_creation) + Literal(";")
+property_assignment = property_name + Optional(Literal("=") + (array ^ bytestring ^ stringlist ^ label_creation)) + Literal(";")
 
 node_opener = Optional(label_creation) + node_name + Optional(Literal("@") + unit_address) + Literal("{")
 node_closer = Literal("}") + Literal(";")
