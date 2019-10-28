@@ -21,14 +21,14 @@ array = Literal("<") + ZeroOrMore(arith_expr ^ string ^ reference ^ label_creati
 bytestring = Literal("[") + (Word(hexnums) ^ label_creation) + Literal("]")
 property_assignment = property_name + Optional(Literal("=") + (array ^ bytestring ^ stringlist ^ label_creation)) + Literal(";")
 
-node_opener = Optional(label_creation) + Combine(node_name + Optional(Literal("@") + unit_address)) + Literal("{")
+node_opener = Optional(label_creation).setResultsName("label") + node_name("name") + Optional(Literal("@").suppress() + unit_address("address")) + Literal("{")
 node_closer = Literal("}") + Literal(";")
 node_definition = Forward()
-node_definition << node_opener + ZeroOrMore(property_assignment ^ directive ^ node_definition) + node_closer
+node_definition << node_opener + ZeroOrMore(property_assignment ^ directive ^ node_definition).setResultsName("children") + node_closer
 
 devicetree = ZeroOrMore(directive ^ node_definition)
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:
-        print(devicetree.parseFile(sys.argv[1]))
+        devicetree.parseFile(sys.argv[1]).pprint()
