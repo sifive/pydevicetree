@@ -6,7 +6,7 @@ hex_int = Combine(Literal("0x") + Word(hexnums))
 integer = decimal_int ^ hex_int
 unit_address = Word(hexnums)
 property_name = Word(alphanums + ",.-_+?#")
-label = Word(alphanums + "_")
+label = Word(alphanums + "_").setResultsName("label")
 label_creation = Combine(label + Literal(":"))
 string = QuotedString(quoteChar='"', unquoteResults=False)
 stringlist = delimitedList(string)
@@ -17,12 +17,12 @@ directive = QuotedString(quoteChar="/", unquoteResults=False) + Optional(propert
 # todo: arithmetic expressions
 arith_expr = integer
 
-array = Literal("<") + ZeroOrMore(arith_expr ^ string ^ reference ^ label_creation) + Literal(">")
+array = Literal("<").suppress() + ZeroOrMore(arith_expr ^ string ^ reference ^ label_creation) + Literal(">").suppress()
 bytestring = Literal("[") + (Word(hexnums) ^ label_creation) + Literal("]")
-property_assignment = property_name + Optional(Literal("=") + (array ^ bytestring ^ stringlist ^ label_creation)) + Literal(";")
+property_assignment = property_name("name") + Optional(Literal("=").suppress() + (array ^ bytestring ^ stringlist ^ label_creation)).setResultsName("value") + Literal(";").suppress()
 
-node_opener = Optional(label_creation).setResultsName("label") + node_name("name") + Optional(Literal("@").suppress() + unit_address("address")) + Literal("{")
-node_closer = Literal("}") + Literal(";")
+node_opener = Optional(label_creation) + node_name("name") + Optional(Literal("@").suppress() + unit_address("address")) + Literal("{").suppress()
+node_closer = Literal("}").suppress() + Literal(";").suppress()
 node_definition = Forward()
 node_definition << node_opener + ZeroOrMore(property_assignment ^ directive ^ node_definition).setResultsName("children") + node_closer
 
