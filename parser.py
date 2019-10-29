@@ -2,6 +2,7 @@
 
 from lexer import *
 from classes import *
+from dump import *
 import pprint
 
 def transformNode(string, location, tokens):
@@ -70,6 +71,7 @@ if __name__ == "__main__":
             dts = f.read()
         tree = parseTree(dts)
         printTree(tree)
+        dumpDTS(tree)
     else:
         print("Please pass the devicetree source file as an argument")
         sys.exit(1)
