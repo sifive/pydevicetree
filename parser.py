@@ -27,7 +27,7 @@ def printTree(tree, level=0):
     for item in tree:
         if type(item) is Node:
             if item.address:
-                printlevel(level, "Node %s@%s" % (item.name, item.address))
+                printlevel(level, "Node %s@%x" % (item.name, item.address))
             else:
                 printlevel(level, "Node %s" % item.name)
 

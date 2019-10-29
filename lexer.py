@@ -5,10 +5,8 @@ from pyparsing import *
 ParserElement.enablePackrat()
 
 node_name = Word(alphanums + ",.-+_") ^ Literal("/")
-decimal_int = Word(nums)
-hex_int = Combine(Literal("0x") + Word(hexnums))
-integer = decimal_int ^ hex_int
-unit_address = Word(hexnums)
+integer = pyparsing_common.integer ^ (Literal("0x").suppress() + pyparsing_common.hex_integer)
+unit_address = pyparsing_common.hex_integer
 property_name = Word(alphanums + ",.-_+?#")
 label = Word(alphanums + "_").setResultsName("label")
 label_creation = Combine(label + Literal(":"))
