@@ -34,6 +34,9 @@ def printTree(tree, level=0):
             if item.label:
                 printlevel(level, " Label: %s" % item.label)
 
+            if item.parent:
+                printlevel(level, " Parent: %s" % item.parent)
+
             printTree(item.properties, level=(level + 1))
 
             printTree(item.children, level=(level + 1))
@@ -48,8 +51,17 @@ def printTree(tree, level=0):
             else:
                 printlevel(level, "Directive %s" % item.directive)
 
+def parentNodes(tree, parent=None):
+    for item in tree:
+        if type(item) is Node:
+            item.parent = parent
+            parentNodes(item.children, item)
+
+
 def parseTree(dts):
-    return devicetree.parseString(dts)
+    tree = devicetree.parseString(dts)
+    parentNodes(tree)
+    return tree
 
 if __name__ == "__main__":
     import sys

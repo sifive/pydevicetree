@@ -5,6 +5,7 @@ import pprint
 class Node:
     def __init__(self, name, label=None, address=None, properties=None, children=None):
         self.name = name
+        self.parent=None
 
         self.label = label
         self.address = address
@@ -18,7 +19,7 @@ class Node:
             return "<Node %s>" % self.name
 
     def __str__(self):
-        return ("Node %s\n" % self.name) + pprint.pformat(self.__dict__)
+        return "Node %s" % self.name
 
 class Property:
     def __init__(self, name, values=None):
