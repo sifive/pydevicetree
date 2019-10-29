@@ -37,12 +37,12 @@ arith_expr = infixNotation(integer, operands)
 
 array = Literal("<").suppress() + ZeroOrMore(arith_expr ^ string ^ reference ^ label_creation) + Literal(">").suppress()
 bytestring = Literal("[") + (Word(hexnums) ^ label_creation) + Literal("]")
-property_assignment = property_name("name") + Optional(Literal("=").suppress() + (array ^ bytestring ^ stringlist ^ label_creation)).setResultsName("value") + Literal(";").suppress()
+property_assignment = property_name("property_name") + Optional(Literal("=").suppress() + (array ^ bytestring ^ stringlist ^ label_creation)).setResultsName("value") + Literal(";").suppress()
 
-node_opener = Optional(label_creation) + node_name("name") + Optional(Literal("@").suppress() + unit_address("address")) + Literal("{").suppress()
+node_opener = Optional(label_creation) + node_name("node_name") + Optional(Literal("@").suppress() + unit_address("address")) + Literal("{").suppress()
 node_closer = Literal("}").suppress() + Literal(";").suppress()
 node_definition = Forward()
-node_definition << node_opener + ZeroOrMore(property_assignment ^ directive ^ node_definition).setResultsName("children") + node_closer
+node_definition << node_opener + ZeroOrMore(property_assignment ^ directive ^ node_definition) + node_closer
 
 devicetree = ZeroOrMore(directive ^ node_definition)
 
