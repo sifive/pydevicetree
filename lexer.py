@@ -2,6 +2,8 @@
 
 from pyparsing import *
 
+ParserElement.enablePackrat()
+
 node_name = Word(alphanums + ",.-+_") ^ Literal("/")
 decimal_int = Word(nums)
 hex_int = Combine(Literal("0x") + Word(hexnums))
@@ -16,8 +18,22 @@ node_path = Combine(Literal("/") + delimitedList(node_name, delim="/") + Optiona
 reference = Combine(Literal("&") + ((Literal("{") + node_path + Literal("}")) ^ label))
 directive = QuotedString(quoteChar="/", unquoteResults=False) + Optional(property_name ^ node_name ^ reference ^ (integer * 2)) + Literal(";")
 
-# todo: arithmetic expressions
-arith_expr = integer
+operands = [
+        (oneOf("~ !"),   1, opAssoc.RIGHT),
+        (oneOf("* /"),   2, opAssoc.LEFT),
+        (oneOf("+ -"),   2, opAssoc.LEFT),
+        (oneOf("<< >>"), 2, opAssoc.LEFT),
+        (oneOf("< <="),  2, opAssoc.LEFT),
+        (oneOf("> >="),  2, opAssoc.LEFT),
+        (oneOf("== !="), 2, opAssoc.LEFT),
+        (Literal("&"),   2, opAssoc.LEFT),
+        (Literal("^"),   2, opAssoc.LEFT),
+        (Literal("|"),   2, opAssoc.LEFT),
+        (Literal("&&"),  2, opAssoc.LEFT),
+        (Literal("||"),  2, opAssoc.LEFT),
+        ((Literal("?"), Literal(":")), 3, opAssoc.RIGHT),
+        ]
+arith_expr = infixNotation(integer, operands)
 
 array = Literal("<").suppress() + ZeroOrMore(arith_expr ^ string ^ reference ^ label_creation) + Literal(">").suppress()
 bytestring = Literal("[") + (Word(hexnums) ^ label_creation) + Literal("]")
