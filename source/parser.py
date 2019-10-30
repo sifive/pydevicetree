@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from lexer import *
-from classes import *
-from dump import *
+from source.lexer import *
+from ast.classes import *
+from source.dump import *
 import pprint
 
 def transformNode(string, location, tokens):

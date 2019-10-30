@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from classes import *
+from ast.classes import *
 from functools import reduce
 
 def dumpDTS(tree, level=0):
