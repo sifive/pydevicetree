@@ -18,14 +18,17 @@ class Devicetree:
                nodes += self.__find_nodes(match_func, e.children)
         return nodes
 
-    def match(self, compatible, func):
+    def match(self, compatible, func=None):
         regex = re.compile(compatible)
         def match_compat(node):
             compatibles = node.get_fields("compatible")
             if compatibles is not None:
                 return all(regex.match(c) for c in compatibles)
-        for n in self.__find_nodes(match_compat, self.elements):
-            func(n)
+        nodes = self.__find_nodes(match_compat, self.elements)
+        if func is not None:
+            for n in nodes:
+                func(n)
+        return nodes
 
     def chosen(self, property_name, func):
         def match_chosen(node):
@@ -63,6 +66,24 @@ class Node:
         fields = self.get_fields(field_name)
         if fields is not None:
             return fields[0]
+
+    def address_cells(self):
+        cells = self.get_field("#address-cells")
+        if cells is not None:
+            return cells
+        elif self.parent is not None:
+            return self.parent.address_cells()
+        # No address cells found
+        return 0
+
+    def size_cells(self):
+        cells = self.get_field("#size-cells")
+        if cells is not None:
+            return cells
+        elif self.parent is not None:
+            return self.parent.size_cells()
+        # No size cells found
+        return 0
 
 class Property:
     def __init__(self, name, values=None):

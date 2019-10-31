@@ -12,10 +12,18 @@ class TestDevicetree(unittest.TestCase):
             my-cpu = "/cpus/cpu@0";
         };
         / {
+            #address-cells = <2>;
+            #size-cells = <2>;
             cpus {
                 cpu@0 {
+                    #address-cells = <1>;
                     compatible = "riscv";
                     reg = <0>;
+                };
+                cpu@1 {
+                    #size-cells = <1>;
+                    compatible = "riscv";
+                    reg = <1>;
                 };
             };
         };
@@ -35,6 +43,19 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(cpu.get_field("compatible"), "riscv")
         self.assertEqual(cpu.get_field("reg"), 0)
 
+    def test_cells(self):
+        tree = parseTree(self.source)
+
+        cpu0 = tree.match("riscv")[0]
+        cpu1 = tree.match("riscv")[1]
+        self.assertEqual(type(cpu0), Node)
+        self.assertEqual(type(cpu1), Node)
+
+        self.assertEqual(cpu0.address_cells(), 1)
+        self.assertEqual(cpu0.size_cells(), 2)
+        self.assertEqual(cpu1.address_cells(), 2)
+        self.assertEqual(cpu1.size_cells(), 1)
+
     def test_match(self):
         tree = parseTree(self.source)
 
@@ -43,9 +64,8 @@ class TestDevicetree(unittest.TestCase):
         def func(cpu):
             self.assertEqual(type(cpu), Node)
             self.assertEqual(cpu.name, "cpu")
-            self.assertEqual(cpu.address, 0)
+            self.assertEqual(cpu.address, cpu.get_field("reg"))
             self.assertEqual(cpu.get_field("compatible"), "riscv")
-            self.assertEqual(cpu.get_field("reg"), 0)
 
         tree.match("riscv", func)
 
