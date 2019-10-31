@@ -62,7 +62,7 @@ def parentNodes(tree, parent=None):
 def parseTree(dts):
     tree = devicetree.parseString(dts)
     parentNodes(tree)
-    return tree
+    return Devicetree(tree)
 
 if __name__ == "__main__":
     import sys

@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
-import pprint
+class Devicetree:
+    def __init__(self, elements=[]):
+        self.elements = elements
+
+    def __iter__(self):
+        return iter(self.elements)
 
 class Node:
     def __init__(self, name, label=None, address=None, properties=None, children=None):
