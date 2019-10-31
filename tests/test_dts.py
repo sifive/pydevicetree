@@ -4,7 +4,7 @@ import unittest
 import os
 from source import *
 
-devicetreedir = "tests/devicetrees/"
+devicetreedirs = ["tests/devicetrees/", "tests/devicetrees/sifive/"]
 
 def compareIgnoreNewlines(a, b):
     import re
@@ -33,10 +33,16 @@ def compareIgnoreNewlines(a, b):
 
 class TestDevicetreeSource(unittest.TestCase):
     def test_devicetree(self):
-        devicetrees = os.listdir(devicetreedir)
+        devicetrees = []
+        for d in devicetreedirs:
+            for f in os.listdir(d):
+                if f[-4:] == ".dts":
+                    devicetrees.append(d + f)
+
         for i in devicetrees:
             with self.subTest(devicetree=i):
-                with open(devicetreedir + i, "r") as f:
+                print("Testing DTS %s" % i)
+                with open(i, "r") as f:
                     contents = f.read()
 
                 tree = parseTree(contents)
