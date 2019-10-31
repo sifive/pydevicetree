@@ -12,14 +12,21 @@ def transformNode(string, location, tokens):
     return Node(tokens.node_name, tokens.label, tokens.address, properties=properties, children=children)
 
 def transformPropertyAssignment(string, location, tokens):
-    return Property(tokens.property_name, tokens.value)
+    if tokens.value == '':
+        return Property(tokens.property_name)
+    else:
+        return Property(tokens.property_name, tokens.value.asList())
 
 def transformDirective(string, location, tokens):
     return Directive(tokens.directive, tokens.option)
 
+def transformArray(string, location, tokens):
+    return tokens.asList()
+
 node_definition.setParseAction(transformNode)
 property_assignment.setParseAction(transformPropertyAssignment)
 directive.setParseAction(transformDirective)
+array.setParseAction(transformArray)
 
 def printTree(tree, level=0):
     def printlevel(level, s):
@@ -58,11 +65,21 @@ def parentNodes(tree, parent=None):
             item.parent = parent
             parentNodes(item.children, item)
 
+def followIncludes(elements, pwd):
+    for e in elements:
+        if type(e) is Directive:
+            if e.directive == "/include/":
+                with open(pwd + e.options, 'r') as f:
+                    contents = f.read()
+                tree = parseTree(contents)
+                
+                elements += tree.elements
 
-def parseTree(dts):
-    tree = devicetree.parseString(dts)
-    parentNodes(tree)
-    return Devicetree(tree)
+def parseTree(dts, pwd=""):
+    elements = devicetree.parseString(dts)
+    parentNodes(elements)
+    followIncludes(elements, pwd)
+    return Devicetree(elements)
 
 if __name__ == "__main__":
     import sys

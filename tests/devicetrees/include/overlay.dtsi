@@ -1,0 +1,3 @@
+chosen {
+	stdout-path = "/soc/uart@1000";
+};

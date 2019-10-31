@@ -14,7 +14,7 @@ string = QuotedString(quoteChar='"')
 stringlist = delimitedList(string)
 node_path = Combine(Literal("/") + delimitedList(node_name, delim="/") + Optional(Literal("@") + unit_address))
 reference = Combine(Literal("&") + ((Literal("{") + node_path("path") + Literal("}")) ^ label))
-directive = QuotedString(quoteChar="/", unquoteResults=False).setResultsName("directive") + Optional(property_name ^ node_name ^ reference ^ (integer * 2)).setResultsName("option") + Literal(";").suppress()
+directive = QuotedString(quoteChar="/", unquoteResults=False).setResultsName("directive") + Optional(string ^ property_name ^ node_name ^ reference ^ (integer * 2)).setResultsName("option") + Literal(";").suppress()
 
 operands = [
         (oneOf("~ !"),   1, opAssoc.RIGHT),

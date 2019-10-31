@@ -1,0 +1,22 @@
+/dts-v1/;
+
+/include/ "overlay.dtsi";
+
+/ {
+	#address-cells = <1>;
+	#size-cells = <1>;
+	cpus {
+		cpu@0 {
+			#size-cells = <0>;
+			compatible = "riscv";
+			reg = <0>;
+		};
+	};
+	soc {
+		uart@1000 {
+			compatible = "uart";
+			reg = <0x1000 0x1000>;
+			reg-names = "control";
+		};
+	};
+};
