@@ -8,6 +8,9 @@ class TestDevicetree(unittest.TestCase):
     def setUp(self):
         self.source = """
         /dts-v1/;
+        chosen {
+            my-cpu = "/cpus/cpu@0";
+        };
         / {
             cpus {
                 cpu@0 {
@@ -24,7 +27,7 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(type(tree), Devicetree)
         self.assertEqual(type(tree.elements[1]), Node)
 
-        cpu = tree.elements[1].children[0].children[0]
+        cpu = tree.elements[2].children[0].children[0]
 
         self.assertEqual(type(cpu), Node)
         self.assertEqual(cpu.name, "cpu")
@@ -45,6 +48,16 @@ class TestDevicetree(unittest.TestCase):
             self.assertEqual(cpu.get_field("reg"), 0)
 
         tree.match("riscv", func)
+
+    def test_chosen(self):
+        tree = parseTree(self.source)
+
+        self.assertEqual(type(tree), Devicetree)
+
+        def func(values):
+            self.assertEqual(values[0], "/cpus/cpu@0")
+
+        tree.chosen("my-cpu", func)
 
 if __name__ == "__main__":
     unittest.main()

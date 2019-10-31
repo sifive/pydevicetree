@@ -27,6 +27,14 @@ class Devicetree:
         for n in self.__find_nodes(match_compat, self.elements):
             func(n)
 
+    def chosen(self, property_name, func):
+        def match_chosen(node):
+            return node.name == "chosen"
+        for n in self.__find_nodes(match_chosen, self.elements):
+            for p in n.properties:
+                if p.name == property_name:
+                    func(p.values)
+
 class Node:
     def __init__(self, name, label=None, address=None, properties=None, children=None):
         self.name = name
