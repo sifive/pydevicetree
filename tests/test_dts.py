@@ -32,6 +32,7 @@ def compareIgnoreNewlines(a, b):
     return True
 
 class TestDevicetreeSource(unittest.TestCase):
+    #@unittest.skip
     def test_devicetree(self):
         devicetrees = []
         for d in devicetreedirs:

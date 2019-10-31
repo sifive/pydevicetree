@@ -10,7 +10,7 @@ unit_address = pyparsing_common.hex_integer
 property_name = Word(alphanums + ",.-_+?#")
 label = Word(alphanums + "_").setResultsName("label")
 label_creation = Combine(label + Literal(":"))
-string = QuotedString(quoteChar='"', unquoteResults=False)
+string = QuotedString(quoteChar='"')
 stringlist = delimitedList(string)
 node_path = Combine(Literal("/") + delimitedList(node_name, delim="/") + Optional(Literal("@") + unit_address))
 reference = Combine(Literal("&") + ((Literal("{") + node_path("path") + Literal("}")) ^ label))

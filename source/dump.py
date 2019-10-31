@@ -18,7 +18,7 @@ def dumpDTS(tree, level=0):
     def formatList(l, formatHex=False):
         if listIsAllStrings(l):
             # Strings aren't contained by <>
-            return ", ".join([str(x) for x in l])
+            return ", ".join(["\"" + str(x) + "\"" for x in l])
         else:
             if formatHex:
                 l = ["0x{:x}".format(x) for x in l if type(x) is int] + [str(x) for x in l if type(x) is not int]

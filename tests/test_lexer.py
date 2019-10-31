@@ -19,7 +19,7 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(node.name, "my-node")
         self.assertEqual(node.properties[0].name, "my-property")
         self.assertEqual(node.properties[1].name, "compatible")
-        self.assertEqual(node.properties[1].values[0], "\"my-node\"")
+        self.assertEqual(node.properties[1].values[0], "my-node")
         self.assertEqual(node.children, [])
 
     def test_directive(self):
