@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import re
 
 class Devicetree:
@@ -8,6 +9,14 @@ class Devicetree:
 
     def __iter__(self):
         return iter(self.elements)
+
+    @staticmethod
+    def parseFile(filename, followIncludes=False):
+        from source import parseTree
+        with open(filename, 'r') as f:
+            contents = f.read()
+        pwd = os.path.dirname(filename) + "/"
+        return Devicetree(parseTree(contents, pwd, followIncludes))
 
     def dump(self):
         from source import printTree

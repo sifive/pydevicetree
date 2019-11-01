@@ -76,20 +76,26 @@ def parentNodes(tree, parent=None):
             item.parent = parent
             parentNodes(item.children, item)
 
-def followIncludes(elements, pwd):
+def recurseIncludeFiles(elements, pwd):
     for e in elements:
         if type(e) is Directive:
             if e.directive == "/include/":
-                with open(pwd + e.options, 'r') as f:
+                # Prefix with current directory if path is not absolute
+                if e.options[0] != '/':
+                    e.options = pwd + e.options
+
+                with open(e.options, 'r') as f:
                     contents = f.read()
+
                 tree = parseTree(contents)
                 
                 elements += tree.elements
 
-def parseTree(dts, pwd=""):
+def parseTree(dts, pwd="", followIncludes=False):
     elements = devicetree.parseString(dts)
     parentNodes(elements)
-    followIncludes(elements, pwd)
+    if followIncludes:
+        recurseIncludeFiles(elements, pwd)
     return Devicetree(elements)
 
 if __name__ == "__main__":
