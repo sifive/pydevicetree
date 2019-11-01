@@ -16,8 +16,11 @@ node_path = Combine(Literal("/") + delimitedList(node_name, delim="/") + Optiona
 reference = Combine(Literal("&") + ((Literal("{") + node_path("path") + Literal("}")) ^ label))
 directive = QuotedString(quoteChar="/", unquoteResults=False).setResultsName("directive") + Optional(string ^ property_name ^ node_name ^ reference ^ (integer * 2)).setResultsName("option") + Literal(";").suppress()
 
-operator = oneOf("~ ! * / + - << >> < <= > >= == != & ^ | && || ? :")
-arith_expr = nestedExpr(content=OneOrMore(operator ^ integer))
+operator = oneOf("~ ! * / + - << >> < <= > >= == != & ^ | && ||")
+arith_expr = Forward()
+ternary_element = arith_expr ^ integer
+ternary_expr = ternary_element + Literal("?") + ternary_element + Literal(":") + ternary_element
+arith_expr = nestedExpr(content=(OneOrMore(operator ^ integer) ^ ternary_expr))
 
 array = Literal("<").suppress() + ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation) + Literal(">").suppress()
 bytestring = Literal("[") + (Word(hexnums) ^ label_creation) + Literal("]")

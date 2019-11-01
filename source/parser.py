@@ -3,6 +3,7 @@
 from source.lexer import *
 from ast.classes import *
 from source.dump import *
+from itertools import chain
 import pprint
 
 def transformNode(string, location, tokens):
@@ -23,10 +24,20 @@ def transformDirective(string, location, tokens):
 def transformArray(string, location, tokens):
     return tokens.asList()
 
+def evaluateArithExpr(string, location, tokens):
+    flat_tokens = list(chain.from_iterable(tokens.asList()))
+    expr = " ".join(str(t) for t in flat_tokens)
+    return eval(expr)
+
+def transformTernary(string, location, tokens):
+    return eval(str(tokens[2]) +" if " + str(tokens[0]) + " else " + str(tokens[4])) 
+
 node_definition.setParseAction(transformNode)
 property_assignment.setParseAction(transformPropertyAssignment)
 directive.setParseAction(transformDirective)
 array.setParseAction(transformArray)
+arith_expr.setParseAction(evaluateArithExpr)
+ternary_expr.setParseAction(transformTernary)
 
 def printTree(tree, level=0):
     def printlevel(level, s):

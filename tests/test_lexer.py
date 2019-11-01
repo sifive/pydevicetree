@@ -5,10 +5,10 @@ from source.lexer import *
 
 class TestLexer(unittest.TestCase):
     def test_arith_expr(self):
-        self.assertEqual(arith_expr.parseString("(1 + 2)").asList(), [[1, '+', 2]])
-        self.assertEqual(arith_expr.parseString("(1 + 0xa)").asList(), [[1, '+', 10]])
-        self.assertEqual(arith_expr.parseString("(1 ? 2 : 3)").asList(), [[1, '?', 2, ':', 3]])
-        self.assertEqual(arith_expr.parseString("(1 + (2 + 3))").asList(), [[1, '+', [2, '+', 3]]])
+        self.assertEqual(arith_expr.parseString("(1 + 2)").asList(), [3])
+        self.assertEqual(arith_expr.parseString("(1 + 0xa)").asList(), [11])
+        self.assertEqual(arith_expr.parseString("(1 ? 2 : 3)").asList(), [2])
+        self.assertEqual(arith_expr.parseString("(1 + (2 + 3))").asList(), [6])
 
     def test_array(self):
         self.assertEqual(array.parseString("<1>").asList(), [1])
