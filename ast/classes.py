@@ -107,16 +107,16 @@ class Devicetree:
         from source import printTree
         printTree(self.elements)
 
-    def __filter_nodes(self, elements: ElementList) -> List[Node]:
-        return cast(List[Node], filter(lambda e: type(e) is Node, elements),)
+    def top_level_nodes(self) -> List[Node]:
+        return cast(List[Node], list(filter(lambda e: type(e) is Node, self.elements)))
 
-    def __find_nodes(self, match_func: Callable[[Node], bool], elements: ElementList) -> List[Node]:
-        nodes = []
-        for e in self.__filter_nodes(elements):
-           if match_func(e):
-               nodes.append(e)
-           nodes += self.__find_nodes(match_func, e.children)
-        return nodes
+    def all_nodes(self) -> List[Node]:
+        def all_nodes_recurse(nodes: List[Node]) -> List[Node]:
+            list_of_nodes = nodes
+            for node in nodes:
+                list_of_nodes += all_nodes_recurse(node.children)
+            return list_of_nodes
+        return all_nodes_recurse(self.top_level_nodes())
 
     def match(self, compatible: Pattern, func: MatchCallback = None) -> List[Node]:
         regex = re.compile(compatible)
@@ -127,20 +127,24 @@ class Devicetree:
                 return any(regex.match(c) for c in compatibles)
             return False
 
-        nodes = self.__find_nodes(match_compat, self.elements)
+        nodes = list(filter(match_compat, self.all_nodes()))
+
         if func is not None:
             for n in nodes:
                 func(n)
+
         return nodes
 
     def chosen(self, property_name: str, func: ChosenCallback = None) -> Optional[PropertyValues]:
-        def match_chosen(node):
+        def match_chosen(node: Node) -> bool:
             return node.name == "chosen"
-        for n in self.__find_nodes(match_chosen, self.elements):
+
+        for n in filter(match_chosen, self.all_nodes()):
             for p in n.properties:
                 if p.name == property_name:
                     if func is not None:
                         func(p.values)
                     return p.values
+
         return None
 
