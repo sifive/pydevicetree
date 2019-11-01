@@ -3,84 +3,72 @@
 import os
 import re
 
-class Devicetree:
-    def __init__(self, elements=[]):
-        self.elements = elements
+from typing import List, Union, Optional, TypeVar, Type, Iterable, Callable, cast, Any, Pattern
 
-    def __iter__(self):
-        return iter(self.elements)
+Element = Union['Node', 'Property', 'Directive']
+ElementList = Iterable[Element]
+MatchCallback = Optional[Callable[['Node'], None]]
+PropertyValue = Optional[Union[int, str]]
+PropertyValues = List[PropertyValue]
+DirectiveOption = List[Any]
+ChosenCallback = Optional[Callable[[PropertyValues], None]]
 
-    @staticmethod
-    def parseFile(filename, followIncludes=False):
-        from source import parseTree
-        with open(filename, 'r') as f:
-            contents = f.read()
-        pwd = os.path.dirname(filename) + "/"
-        return Devicetree(parseTree(contents, pwd, followIncludes))
+class Property:
+    def __init__(self, name: str, values: PropertyValues = []):
+        self.name = name
+        self.values = values
 
-    def dump(self):
-        from source import printTree
-        printTree(self.elements)
+    def __repr__(self) -> str:
+        return "<Property %s>" % self.name
 
-    def __find_nodes(self, match_func, elements):
-        nodes = []
-        for e in elements:
-            if type(e) is Node:
-               if match_func(e):
-                   nodes.append(e)
-               nodes += self.__find_nodes(match_func, e.children)
-        return nodes
+    def __str__(self) -> str:
+        if self.values:
+            return "Property %s: %s" % (self.name, self.values)
+        else:
+            return "Property %s" % self.name
 
-    def match(self, compatible, func=None):
-        regex = re.compile(compatible)
-        def match_compat(node):
-            compatibles = node.get_fields("compatible")
-            if compatibles is not None:
-                return all(regex.match(c) for c in compatibles)
-        nodes = self.__find_nodes(match_compat, self.elements)
-        if func is not None:
-            for n in nodes:
-                func(n)
-        return nodes
+class Directive:
+    def __init__(self, directive: str, options: DirectiveOption = []):
+        self.directive = directive
+        self.options = options
 
-    def chosen(self, property_name, func=None):
-        def match_chosen(node):
-            return node.name == "chosen"
-        for n in self.__find_nodes(match_chosen, self.elements):
-            for p in n.properties:
-                if p.name == property_name:
-                    if func is not None:
-                        func(p.values)
-                    return p.values
+    def __repr__(self) -> str:
+        return "<Directive %s>" % self.directive
+
+    def __str__(self) -> str:
+        return "Directive %s" % self.directive
 
 class Node:
-    def __init__(self, name, label=None, address=None, properties=None, children=None):
+    def __init__(self, name: str, label: Optional[str] = None, address: Optional[str] = None, properties: List[Property] = [], directives: List[Directive] = [], children: List['Node'] = []):
         self.name = name
-        self.parent=None
+        self.parent = None # type: Optional['Node']
 
         self.label = label
         self.address = address
         self.properties = properties
+        self.directives = directives
         self.children = children
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.address:
             return "<Node %s@%s>" % (self.name, self.address)
         else:
             return "<Node %s>" % self.name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Node %s" % self.name
 
-    def get_fields(self, field_name):
+    def get_fields(self, field_name: str) -> PropertyValues:
         for p in self.properties:
             if p.name == field_name:
                 return p.values
+        return []
 
-    def get_field(self, field_name):
+    def get_field(self, field_name: str) -> PropertyValue:
         fields = self.get_fields(field_name)
-        if fields is not None:
+        if len(fields) != 0:
             return fields[0]
+        return None
 
     def address_cells(self):
         cells = self.get_field("#address-cells")
@@ -100,29 +88,59 @@ class Node:
         # No size cells found
         return 0
 
-class Property:
-    def __init__(self, name, values=None):
-        self.name = name
+class Devicetree:
+    def __init__(self, elements: ElementList = []):
+        self.elements = elements
 
-        self.values = values
+    def __iter__(self) -> ElementList:
+        return iter(self.elements)
 
-    def __repr__(self):
-        return "<Property %s>" % self.name
+    @staticmethod
+    def parseFile(filename: str, followIncludes: Optional[bool] = False) -> 'Devicetree':
+        from source import parseTree
+        with open(filename, 'r') as f:
+            contents = f.read()
+        pwd = os.path.dirname(filename) + "/"
+        return Devicetree(parseTree(contents, pwd, followIncludes))
 
-    def __str__(self):
-        if self.values:
-            return "Property %s: %s" % (self.name, self.values)
-        else:
-            return "Property %s" % self.name
+    def dump(self) -> None:
+        from source import printTree
+        printTree(self.elements)
 
-class Directive:
-    def __init__(self, directive, options=None):
-        self.directive = directive
+    def __filter_nodes(self, elements: ElementList) -> List[Node]:
+        return cast(List[Node], filter(lambda e: type(e) is Node, elements),)
 
-        self.options = options
+    def __find_nodes(self, match_func: Callable[[Node], bool], elements: ElementList) -> List[Node]:
+        nodes = []
+        for e in self.__filter_nodes(elements):
+           if match_func(e):
+               nodes.append(e)
+           nodes += self.__find_nodes(match_func, e.children)
+        return nodes
 
-    def __repr__(self):
-        return "<Directive %s>" % self.directive
+    def match(self, compatible: Pattern, func: MatchCallback = None) -> List[Node]:
+        regex = re.compile(compatible)
 
-    def __str__(self):
-        return "Directive %s" % self.directive
+        def match_compat(node: Node) -> bool:
+            compatibles = node.get_fields("compatible")
+            if compatibles is not None:
+                return any(regex.match(c) for c in compatibles)
+            return False
+
+        nodes = self.__find_nodes(match_compat, self.elements)
+        if func is not None:
+            for n in nodes:
+                func(n)
+        return nodes
+
+    def chosen(self, property_name: str, func: ChosenCallback = None) -> Optional[PropertyValues]:
+        def match_chosen(node):
+            return node.name == "chosen"
+        for n in self.__find_nodes(match_chosen, self.elements):
+            for p in n.properties:
+                if p.name == property_name:
+                    if func is not None:
+                        func(p.values)
+                    return p.values
+        return None
+

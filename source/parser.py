@@ -7,10 +7,11 @@ from itertools import chain
 import pprint
 
 def transformNode(string, location, tokens):
-    properties = [e for e in tokens.asList() if type(e) is Property or type(e) is Directive]
+    properties = [e for e in tokens.asList() if type(e) is Property]
+    directives = [e for e in tokens.asList() if type(e) is Directive]
     children = [e for e in tokens.asList() if type(e) is Node]
 
-    return Node(tokens.node_name, tokens.label, tokens.address, properties=properties, children=children)
+    return Node(tokens.node_name, tokens.label, tokens.address, properties=properties, directives=directives, children=children)
 
 def transformPropertyAssignment(string, location, tokens):
     if tokens.value == '':
