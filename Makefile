@@ -10,3 +10,4 @@ virtualenv: venv/bin/activate
 .PHONY: test
 test: venv/bin/activate
 	source venv/bin/activate && python3 -m unittest
+	source venv/bin/activate && mypy -m unittest
