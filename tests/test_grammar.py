@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 import unittest
-from source.lexer import *
+from source.grammar import *
 
-class TestLexer(unittest.TestCase):
+class TestGrammar(unittest.TestCase):
     def test_arith_expr(self):
         self.assertEqual(arith_expr.parseString("(1 + 2)").asList(), [3])
         self.assertEqual(arith_expr.parseString("(1 + 0xa)").asList(), [11])

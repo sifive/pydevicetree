@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from source.lexer import *
+from source.grammar import *
 from ast.classes import *
 from source.dump import *
 from itertools import chain
