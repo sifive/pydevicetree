@@ -16,24 +16,10 @@ node_path = Combine(Literal("/") + delimitedList(node_name, delim="/") + Optiona
 reference = Combine(Literal("&") + ((Literal("{") + node_path("path") + Literal("}")) ^ label))
 directive = QuotedString(quoteChar="/", unquoteResults=False).setResultsName("directive") + Optional(string ^ property_name ^ node_name ^ reference ^ (integer * 2)).setResultsName("option") + Literal(";").suppress()
 
-operands = [
-        (oneOf("~ !"),   1, opAssoc.RIGHT),
-        (oneOf("* /"),   2, opAssoc.LEFT),
-        (oneOf("+ -"),   2, opAssoc.LEFT),
-        (oneOf("<< >>"), 2, opAssoc.LEFT),
-        (oneOf("< <="),  2, opAssoc.LEFT),
-        (oneOf("> >="),  2, opAssoc.LEFT),
-        (oneOf("== !="), 2, opAssoc.LEFT),
-        (Literal("&"),   2, opAssoc.LEFT),
-        (Literal("^"),   2, opAssoc.LEFT),
-        (Literal("|"),   2, opAssoc.LEFT),
-        (Literal("&&"),  2, opAssoc.LEFT),
-        (Literal("||"),  2, opAssoc.LEFT),
-        ((Literal("?"), Literal(":")), 3, opAssoc.RIGHT),
-        ]
-arith_expr = infixNotation(integer, operands)
+operator = oneOf("~ ! * / + - << >> < <= > >= == != & ^ | && || ? :")
+arith_expr = nestedExpr(content=OneOrMore(operator ^ integer))
 
-array = Literal("<").suppress() + ZeroOrMore(arith_expr ^ string ^ reference ^ label_creation) + Literal(">").suppress()
+array = Literal("<").suppress() + ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation) + Literal(">").suppress()
 bytestring = Literal("[") + (Word(hexnums) ^ label_creation) + Literal("]")
 property_assignment = property_name("property_name") + Optional(Literal("=").suppress() + (array ^ bytestring ^ stringlist ^ label_creation)).setResultsName("value") + Literal(";").suppress()
 

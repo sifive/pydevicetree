@@ -2,6 +2,7 @@
 
 import unittest
 import os
+from itertools import zip_longest
 from source import *
 
 devicetreedirs = ["tests/devicetrees/", "tests/devicetrees/sifive/"]
@@ -20,7 +21,7 @@ def compareIgnoreNewlines(a, b):
     b = filter(predicate, b.split("\n"))
 
     line = 0
-    for x, y in zip(a, b):
+    for x, y in zip_longest(a, b, fillvalue=''):
         if x.strip() != y.strip():
             print("< %d" % line)
             print(x)
