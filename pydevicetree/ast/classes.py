@@ -217,7 +217,7 @@ class Devicetree(Node):
 
     @staticmethod
     def parseFile(filename: str, followIncludes: bool = False) -> 'Devicetree':
-        from source import parseTree
+        from pydevicetree.source import parseTree
         with open(filename, 'r') as f:
             contents = f.read()
         pwd = os.path.dirname(filename) + "/"

@@ -2,8 +2,9 @@
 
 import unittest
 import os
-from source import parseTree
-from ast import *
+
+from pydevicetree.source import parseTree
+from pydevicetree.ast import *
 
 devicetreedir = "tests/devicetrees/include/"
 devicetreebase = devicetreedir + "/base.dts"

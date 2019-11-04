@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 import unittest
-from source.grammar import *
+
+from pydevicetree.source.grammar import *
 
 class TestGrammar(unittest.TestCase):
     def test_arith_expr(self):
@@ -17,7 +18,7 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(array.parseString("<1 2 label: 3>")[0], [1, 2, "label:", 3])
 
     def test_node_definition(self):
-        from ast.classes import Node
+        from pydevicetree.ast.classes import Node
         node = node_definition.parseString("label: my-node@DEADBEEF { my-property; compatible = \"my-node\"; };")[0]
 
         self.assertEqual(type(node), Node)
@@ -29,7 +30,7 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(node.children, [])
 
     def test_directive(self):
-        from ast.classes import Directive
+        from pydevicetree.ast.classes import Directive
         dtsv1 = directive.parseString("/dts-v1/;")[0]
 
         self.assertEqual(type(dtsv1), Directive)

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
-from source.grammar import *
-from ast.classes import *
+from pydevicetree.source.grammar import *
+from pydevicetree.ast.classes import *
+
 from itertools import chain
-import pprint
 
 def transformNode(string, location, tokens):
     properties = [e for e in tokens.asList() if type(e) is Property]

@@ -3,7 +3,8 @@
 import unittest
 import os
 from itertools import zip_longest
-from source import *
+
+from pydevicetree.source import *
 
 devicetreedirs = ["tests/devicetrees/", "tests/devicetrees/sifive/"]
 

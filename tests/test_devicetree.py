@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import unittest
-from source import parseTree
-from ast import *
+
+from pydevicetree.source import parseTree
+from pydevicetree.ast import *
 
 class TestDevicetree(unittest.TestCase):
     def setUp(self):
