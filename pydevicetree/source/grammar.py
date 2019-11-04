@@ -23,7 +23,7 @@ ternary_expr = ternary_element + p.Literal("?") + ternary_element + p.Literal(":
 arith_expr = p.nestedExpr(content=(p.OneOrMore(operator ^ integer) ^ ternary_expr))
 
 cell_array = p.Literal("<").suppress() + p.ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation) + p.Literal(">").suppress()
-bytestring = p.Literal("[") + (p.Word(p.hexnums) ^ label_creation) + p.Literal("]")
+bytestring = p.Literal("[").suppress() + (p.OneOrMore(p.Word(p.hexnums, exact=2) ^ label_creation)) + p.Literal("]").suppress()
 property_assignment = property_name("property_name") + p.Optional(p.Literal("=").suppress() + (cell_array ^ bytestring ^ stringlist)).setResultsName("value") + p.Literal(";").suppress()
 
 node_opener = p.Optional(label_creation) + node_name("node_name") + p.Optional(p.Literal("@").suppress() + unit_address("address")) + p.Literal("{").suppress()

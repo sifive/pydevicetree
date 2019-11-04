@@ -61,6 +61,16 @@ class PropertyValues:
         else:
             return self.values == other
 
+class Bytestring(PropertyValues):
+    def __init__(self, bytelist: List[int] = []):
+        PropertyValues.__init__(self, bytearray(bytelist))
+
+    def __repr__(self) -> str:
+        return "<Bytestring " + str(self.values) + ">"
+
+    def to_dts(self, formatHex: bool = False) -> str:
+        return "[" + " ".join("%02x" % v for v in self.values) + "]";
+
 class CellArray(PropertyValues):
     def __init__(self, cells: List[Any] = []):
         PropertyValues.__init__(self, cells)

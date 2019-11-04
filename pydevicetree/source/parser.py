@@ -37,6 +37,13 @@ def transformTernary(string, location, tokens):
 def transformStringList(string, location, tokens):
     return StringList(tokens.asList())
 
+def transformBytestring(string, location, tokens):
+    inttokens = []
+    for t in tokens.asList():
+        if all(c in "0123456789abcdefABCDEF" for c in t):
+            inttokens.append(int(t, base=16))
+    return Bytestring(inttokens)
+
 def transformCellArray(string, location, tokens):
     return CellArray(tokens.asList())
 
@@ -46,6 +53,7 @@ directive.setParseAction(transformDirective)
 arith_expr.setParseAction(evaluateArithExpr)
 ternary_expr.setParseAction(transformTernary)
 stringlist.setParseAction(transformStringList)
+bytestring.setParseAction(transformBytestring)
 cell_array.setParseAction(transformCellArray)
 
 def printTree(tree, level=0):

@@ -11,6 +11,11 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(arith_expr.parseString("(1 ? 2 : 3)").asList(), [2])
         self.assertEqual(arith_expr.parseString("(1 + (2 + 3))").asList(), [6])
 
+    def test_bytestring(self):
+        self.assertEqual(bytestring.parseString("[00 01 02 03]")[0], bytearray([0, 1, 2, 3]))
+        self.assertEqual(bytestring.parseString("[00010203]")[0], bytearray([0, 1, 2, 3]))
+        self.assertEqual(bytestring.parseString("[31 14 15 92 af]")[0], bytearray([0x31, 0x14, 0x15, 0x92, 0xaf]))
+
     def test_cell_array(self):
         self.assertEqual(cell_array.parseString("<1>")[0], [1])
         self.assertEqual(cell_array.parseString("<1 2 3>")[0], [1, 2, 3])
