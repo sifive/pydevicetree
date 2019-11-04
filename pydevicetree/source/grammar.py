@@ -22,9 +22,9 @@ ternary_element = arith_expr ^ integer
 ternary_expr = ternary_element + p.Literal("?") + ternary_element + p.Literal(":") + ternary_element
 arith_expr = p.nestedExpr(content=(p.OneOrMore(operator ^ integer) ^ ternary_expr))
 
-array = p.Literal("<").suppress() + p.ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation) + p.Literal(">").suppress()
+cell_array = p.Literal("<").suppress() + p.ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation) + p.Literal(">").suppress()
 bytestring = p.Literal("[") + (p.Word(p.hexnums) ^ label_creation) + p.Literal("]")
-property_assignment = property_name("property_name") + p.Optional(p.Literal("=").suppress() + (array ^ bytestring ^ stringlist)).setResultsName("value") + p.Literal(";").suppress()
+property_assignment = property_name("property_name") + p.Optional(p.Literal("=").suppress() + (cell_array ^ bytestring ^ stringlist)).setResultsName("value") + p.Literal(";").suppress()
 
 node_opener = p.Optional(label_creation) + node_name("node_name") + p.Optional(p.Literal("@").suppress() + unit_address("address")) + p.Literal("{").suppress()
 node_closer = p.Literal("}").suppress() + p.Literal(";").suppress()

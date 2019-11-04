@@ -11,11 +11,11 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(arith_expr.parseString("(1 ? 2 : 3)").asList(), [2])
         self.assertEqual(arith_expr.parseString("(1 + (2 + 3))").asList(), [6])
 
-    def test_array(self):
-        self.assertEqual(array.parseString("<1>")[0], [1])
-        self.assertEqual(array.parseString("<1 2 3>")[0], [1, 2, 3])
-        self.assertEqual(array.parseString("<1 (1 + 1) 3>")[0], [1, 2, 3])
-        self.assertEqual(array.parseString("<1 2 label: 3>")[0], [1, 2, "label:", 3])
+    def test_cell_array(self):
+        self.assertEqual(cell_array.parseString("<1>")[0], [1])
+        self.assertEqual(cell_array.parseString("<1 2 3>")[0], [1, 2, 3])
+        self.assertEqual(cell_array.parseString("<1 (1 + 1) 3>")[0], [1, 2, 3])
+        self.assertEqual(cell_array.parseString("<1 2 label: 3>")[0], [1, 2, "label:", 3])
 
     def test_node_definition(self):
         from pydevicetree.ast.classes import Node

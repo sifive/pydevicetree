@@ -16,6 +16,8 @@ def transformPropertyAssignment(string, location, tokens):
     for v in tokens.value:
         if type(v) is PropertyValues:
             return Property(tokens.property_name, v)
+        if type(v) is CellArray:
+            return Property(tokens.property_name, v)
         if type(v) is StringList:
             return Property(tokens.property_name, v)
 
@@ -35,17 +37,16 @@ def transformTernary(string, location, tokens):
 def transformStringList(string, location, tokens):
     return StringList(tokens.asList())
 
-def transformArray(string, location, tokens):
-    return PropertyValues(tokens.asList())
+def transformCellArray(string, location, tokens):
+    return CellArray(tokens.asList())
 
 node_definition.setParseAction(transformNode)
 property_assignment.setParseAction(transformPropertyAssignment)
 directive.setParseAction(transformDirective)
-array.setParseAction(transformArray)
 arith_expr.setParseAction(evaluateArithExpr)
 ternary_expr.setParseAction(transformTernary)
 stringlist.setParseAction(transformStringList)
-array.setParseAction(transformArray)
+cell_array.setParseAction(transformCellArray)
 
 def printTree(tree, level=0):
     def printlevel(level, s):

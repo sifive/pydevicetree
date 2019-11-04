@@ -50,7 +50,7 @@ class PropertyValues:
         return len(self.values)
 
     def to_dts(self, formatHex: bool = False) -> str:
-        return "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
+        return " ".join(wrapStrings(self.values, formatHex))
 
     def __getitem__(self, key) -> Any:
         return self.values[key]
@@ -61,9 +61,22 @@ class PropertyValues:
         else:
             return self.values == other
 
+class CellArray(PropertyValues):
+    def __init__(self, cells: List[Any] = []):
+        PropertyValues.__init__(self, cells)
+
+    def __repr__(self) -> str:
+        return "<CellArray " + self.values.__repr__() + ">"
+
+    def to_dts(self, formatHex: bool = False) -> str:
+        return "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
+
 class StringList(PropertyValues):
     def __init__(self, strings: List[str] = []):
         PropertyValues.__init__(self, strings)
+
+    def __repr__(self) -> str:
+        return "<StringList " + self.values.__repr__() + ">"
 
     def to_dts(self, formatHex: bool = False) -> str:
         return ", ".join(wrapStrings(self.values))
@@ -85,7 +98,7 @@ class Property:
         else:
             value = self.values.to_dts(formatHex = False)
 
-        if self.values:
+        if value != "":
             return formatLevel(level, "%s = %s;\n" % (self.name, value))
         else:
             return formatLevel(level, "%s;\n" % self.name)
