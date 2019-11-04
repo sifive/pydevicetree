@@ -5,10 +5,12 @@ import re
 
 from typing import List, Union, Optional, TypeVar, Type, Iterable, Callable, cast, Any, Pattern
 
-Element = Union['Node', 'Property', 'Directive']
-ElementList = Iterable[Element]
-MatchCallback = Optional[Callable[['Node'], None]]
+# These type names are just used in the constructors for these clasess
+ElementList = Iterable[Union['Node', 'Property', 'Directive']]
 DirectiveOption = List[Any]
+
+# Callback type signatures for Devicetree.match() and Devicetree.chosen()
+MatchCallback = Optional[Callable[['Node'], None]]
 ChosenCallback = Optional[Callable[['PropertyValues'], None]]
 
 def formatLevel(level: int, s: str) -> str:
