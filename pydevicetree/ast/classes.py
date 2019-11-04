@@ -3,13 +3,13 @@
 import os
 import re
 
-from typing import List, Union, Optional, TypeVar, Type, Iterable, Callable, cast, Any, Pattern
+from typing import List, Union, Optional, Iterable, Callable, cast, Any, Pattern
 
-# These type names are just used in the constructors for these clasess
+# These  names are just used in the constructors for these clasess
 ElementList = Iterable[Union['Node', 'Property', 'Directive']]
 DirectiveOption = List[Any]
 
-# Callback type signatures for Devicetree.match() and Devicetree.chosen()
+# Callback isinstance signatures for Devicetree.match() and Devicetree.chosen()
 MatchCallback = Optional[Callable[['Node'], None]]
 ChosenCallback = Optional[Callable[['PropertyValues'], None]]
 
@@ -19,12 +19,12 @@ def formatLevel(level: int, s: str) -> str:
 def wrapStrings(values: List[Any], formatHex: bool = False) -> List[Any]:
     wrapped = []
     for v in values:
-        if type(v) is str:
+        if isinstance(v, str):
             if v[0] != '&':
                 wrapped.append("\"%s\"" % v)
             else:
                 wrapped.append(v)
-        elif type(v) is int:
+        elif isinstance(v, int):
             if formatHex:
                 wrapped.append("0x%x" % v)
             else:
@@ -34,7 +34,7 @@ def wrapStrings(values: List[Any], formatHex: bool = False) -> List[Any]:
     return wrapped
 
 class PropertyValues:
-    def __init__(self, values: List[Any] = []):
+    def __init__(self, values: List[Any] = None):
         self.values = values
 
     def __repr__(self) -> str:
@@ -58,21 +58,20 @@ class PropertyValues:
     def __eq__(self, other) -> bool:
         if isinstance(other, PropertyValues):
             return self.values == other.values
-        else:
-            return self.values == other
+        return self.values == other
 
 class Bytestring(PropertyValues):
-    def __init__(self, bytelist: List[int] = []):
+    def __init__(self, bytelist: List[int] = None):
         PropertyValues.__init__(self, bytearray(bytelist))
 
     def __repr__(self) -> str:
         return "<Bytestring " + str(self.values) + ">"
 
     def to_dts(self, formatHex: bool = False) -> str:
-        return "[" + " ".join("%02x" % v for v in self.values) + "]";
+        return "[" + " ".join("%02x" % v for v in self.values) + "]"
 
 class CellArray(PropertyValues):
-    def __init__(self, cells: List[Any] = []):
+    def __init__(self, cells: List[Any] = None):
         PropertyValues.__init__(self, cells)
 
     def __repr__(self) -> str:
@@ -82,7 +81,7 @@ class CellArray(PropertyValues):
         return "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
 
 class StringList(PropertyValues):
-    def __init__(self, strings: List[str] = []):
+    def __init__(self, strings: List[str] = None):
         PropertyValues.__init__(self, strings)
 
     def __repr__(self) -> str:
@@ -104,17 +103,16 @@ class Property:
 
     def to_dts(self, level: int = 0) -> str:
         if self.name in ["reg", "ranges"]:
-            value = self.values.to_dts(formatHex = True)
+            value = self.values.to_dts(formatHex=True)
         else:
-            value = self.values.to_dts(formatHex = False)
+            value = self.values.to_dts(formatHex=False)
 
         if value != "":
             return formatLevel(level, "%s = %s;\n" % (self.name, value))
-        else:
-            return formatLevel(level, "%s;\n" % self.name)
+        return formatLevel(level, "%s;\n" % self.name)
 
 class Directive:
-    def __init__(self, directive: str, options: DirectiveOption = []):
+    def __init__(self, directive: str, options: DirectiveOption = None):
         self.directive = directive
         self.options = options
 
@@ -127,13 +125,15 @@ class Directive:
     def to_dts(self, level: int = 0) -> str:
         if self.options:
             return formatLevel(level, "%s %s;\n" % (self.directive, self.options))
-        else:
-            return formatLevel(level, "%s;\n" % self.directive)
+        return formatLevel(level, "%s;\n" % self.directive)
 
 class Node:
-    def __init__(self, name: str, label: Optional[str] = None, address: Optional[str] = None, properties: List[Property] = [], directives: List[Directive] = [], children: List['Node'] = []):
+    # pylint: disable=too-many-arguments
+    def __init__(self, name: str, label: Optional[str] = None, address: Optional[str] = None,
+                 properties: List[Property] = None, directives: List[Directive] = None,
+                 children: List['Node'] = None):
         self.name = name
-        self.parent = None # type: Optional['Node']
+        self.parent = None # isinstance: Optional['Node']
 
         self.label = label
         self.address = address
@@ -144,17 +144,17 @@ class Node:
     def __repr__(self) -> str:
         if self.address:
             return "<Node %s@%s>" % (self.name, self.address)
-        else:
-            return "<Node %s>" % self.name
+        return "<Node %s>" % self.name
 
     def __str__(self) -> str:
         return self.to_dts()
 
     def to_dts(self, level: int = 0) -> str:
         out = ""
-        if type(self.address) is int and self.label:
-            out += formatLevel(level, "%s: %s@%x {\n" % (self.label, self.name, cast(int, self.address)))
-        elif type(self.address) is int:
+        if isinstance(self.address, int) and self.label:
+            out += formatLevel(level,
+                               "%s: %s@%x {\n" % (self.label, self.name, cast(int, self.address)))
+        elif isinstance(self.address, int):
             out += formatLevel(level, "%s@%x {\n" % (self.name, cast(int, self.address)))
         elif self.label:
             out += formatLevel(level, "%s: %s {\n" % (self.label, self.name))
@@ -196,7 +196,7 @@ class Node:
         cells = self.get_field("#address-cells")
         if cells is not None:
             return cells
-        elif self.parent is not None:
+        if self.parent is not None:
             return self.parent.address_cells()
         # No address cells found
         return 0
@@ -205,26 +205,27 @@ class Node:
         cells = self.get_field("#size-cells")
         if cells is not None:
             return cells
-        elif self.parent is not None:
+        if self.parent is not None:
             return self.parent.size_cells()
         # No size cells found
         return 0
 
 class Devicetree(Node):
-    def __init__(self, elements: ElementList = []):
+    def __init__(self, elements: ElementList = None):
         properties = [] # type: List[Property]
         directives = [] # type: List[Directive]
         children = [] # type: List[Node]
 
         for e in elements:
-            if type(e) is Node:
+            if isinstance(e, Node):
                 children.append(cast(Node, e))
-            elif type(e) is Property:
+            elif isinstance(e, Property):
                 properties.append(cast(Property, e))
-            elif type(e) is Directive:
+            elif isinstance(e, Directive):
                 directives.append(cast(Directive, e))
 
-        Node.__init__(self, name="", properties=properties, directives=directives, children=children)
+        Node.__init__(self, name="",
+                      properties=properties, directives=directives, children=children)
 
     def __repr__(self) -> str:
         name = self.root().get_field("compatible")
@@ -244,6 +245,7 @@ class Devicetree(Node):
 
     @staticmethod
     def parseFile(filename: str, followIncludes: bool = False) -> 'Devicetree':
+        # pylint: disable=import-outside-toplevel,cyclic-import
         from pydevicetree.source import parseTree
         with open(filename, 'r') as f:
             contents = f.read()
@@ -288,4 +290,3 @@ class Devicetree(Node):
                     return p.values
 
         return None
-

@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 
-from pydevicetree.source.grammar import *
-from pydevicetree.ast.classes import *
-
 from itertools import chain
 
-def transformNode(string, location, tokens):
-    properties = [e for e in tokens.asList() if type(e) is Property]
-    directives = [e for e in tokens.asList() if type(e) is Directive]
-    children = [e for e in tokens.asList() if type(e) is Node]
+from pydevicetree.source.grammar import *
+from pydevicetree.ast import *
 
-    return Node(tokens.node_name, tokens.label, tokens.address, properties=properties, directives=directives, children=children)
+def transformNode(string, location, tokens):
+    properties = [e for e in tokens.asList() if isinstance(e, Property)]
+    directives = [e for e in tokens.asList() if isinstance(e, Directive)]
+    children = [e for e in tokens.asList() if isinstance(e, Node)]
+
+    return Node(tokens.node_name, tokens.label, tokens.address, properties=properties,
+                directives=directives, children=children)
 
 def transformPropertyAssignment(string, location, tokens):
     for v in tokens.value:
-        if type(v) is PropertyValues:
+        if isinstance(v, PropertyValues):
             return Property(tokens.property_name, v)
-        if type(v) is CellArray:
+        if isinstance(v, CellArray):
             return Property(tokens.property_name, v)
-        if type(v) is StringList:
+        if isinstance(v, StringList):
             return Property(tokens.property_name, v)
 
     return Property(tokens.property_name, PropertyValues([]))
@@ -29,10 +30,12 @@ def transformDirective(string, location, tokens):
 def evaluateArithExpr(string, location, tokens):
     flat_tokens = list(chain.from_iterable(tokens.asList()))
     expr = " ".join(str(t) for t in flat_tokens)
+    # pylint: disable=eval-used
     return eval(expr)
 
 def transformTernary(string, location, tokens):
-    return eval(str(tokens[2]) +" if " + str(tokens[0]) + " else " + str(tokens[4])) 
+    # pylint: disable=eval-used
+    return eval(str(tokens[2]) +" if " + str(tokens[0]) + " else " + str(tokens[4]))
 
 def transformStringList(string, location, tokens):
     return StringList(tokens.asList())
@@ -61,7 +64,7 @@ def printTree(tree, level=0):
         print(" " * level + s)
 
     for item in tree:
-        if type(item) is Node:
+        if isinstance(item, Node):
             if item.address:
                 printlevel(level, "Node %s@%x" % (item.name, item.address))
             else:
@@ -76,12 +79,12 @@ def printTree(tree, level=0):
             printTree(item.properties, level=(level + 1))
 
             printTree(item.children, level=(level + 1))
-        elif type(item) is Property:
+        elif isinstance(item, Property):
             if item.values:
                 printlevel(level, "Property %s: %s" % (item.name, item.values))
             else:
                 printlevel(level, "Property %s" % item.name)
-        elif type(item) is Directive:
+        elif isinstance(item, Directive):
             if item.options:
                 printlevel(level, "Directive %s: %s" % (item.directive, item.options))
             else:
@@ -89,13 +92,13 @@ def printTree(tree, level=0):
 
 def parentNodes(tree, parent=None):
     for item in tree:
-        if type(item) is Node:
+        if isinstance(item, Node):
             item.parent = parent
             parentNodes(item.children, item)
 
 def recurseIncludeFiles(elements, pwd):
     for e in elements:
-        if type(e) is Directive:
+        if isinstance(e, Directive):
             if e.directive == "/include/":
                 # Prefix with current directory if path is not absolute
                 if e.options[0] != '/':
@@ -127,4 +130,3 @@ if __name__ == "__main__":
     else:
         print("Please pass the devicetree source file as an argument")
         sys.exit(1)
-
