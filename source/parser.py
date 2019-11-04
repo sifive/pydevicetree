@@ -2,7 +2,6 @@
 
 from source.grammar import *
 from ast.classes import *
-from source.dump import *
 from itertools import chain
 import pprint
 
@@ -14,16 +13,16 @@ def transformNode(string, location, tokens):
     return Node(tokens.node_name, tokens.label, tokens.address, properties=properties, directives=directives, children=children)
 
 def transformPropertyAssignment(string, location, tokens):
-    if tokens.value == '':
-        return Property(tokens.property_name)
-    else:
-        return Property(tokens.property_name, tokens.value.asList())
+    for v in tokens.value:
+        if type(v) is PropertyValues:
+            return Property(tokens.property_name, v)
+        if type(v) is StringList:
+            return Property(tokens.property_name, v)
+
+    return Property(tokens.property_name, PropertyValues([]))
 
 def transformDirective(string, location, tokens):
     return Directive(tokens.directive, tokens.option)
-
-def transformArray(string, location, tokens):
-    return tokens.asList()
 
 def evaluateArithExpr(string, location, tokens):
     flat_tokens = list(chain.from_iterable(tokens.asList()))
@@ -33,12 +32,20 @@ def evaluateArithExpr(string, location, tokens):
 def transformTernary(string, location, tokens):
     return eval(str(tokens[2]) +" if " + str(tokens[0]) + " else " + str(tokens[4])) 
 
+def transformStringList(string, location, tokens):
+    return StringList(tokens.asList())
+
+def transformArray(string, location, tokens):
+    return PropertyValues(tokens.asList())
+
 node_definition.setParseAction(transformNode)
 property_assignment.setParseAction(transformPropertyAssignment)
 directive.setParseAction(transformDirective)
 array.setParseAction(transformArray)
 arith_expr.setParseAction(evaluateArithExpr)
 ternary_expr.setParseAction(transformTernary)
+stringlist.setParseAction(transformStringList)
+array.setParseAction(transformArray)
 
 def printTree(tree, level=0):
     def printlevel(level, s):
@@ -88,16 +95,17 @@ def recurseIncludeFiles(elements, pwd):
                 with open(e.options, 'r') as f:
                     contents = f.read()
 
-                tree = parseTree(contents)
-                
-                elements += tree.elements
+                elements += parseElements(contents)
 
-def parseTree(dts, pwd="", followIncludes=False):
+def parseElements(dts, pwd="", followIncludes=False):
     elements = devicetree.parseString(dts)
     parentNodes(elements)
     if followIncludes:
         recurseIncludeFiles(elements, pwd)
-    return Devicetree(elements)
+    return elements
+
+def parseTree(dts, pwd="", followIncludes=False):
+    return Devicetree(parseElements(dts, pwd, followIncludes))
 
 if __name__ == "__main__":
     import sys
@@ -106,7 +114,7 @@ if __name__ == "__main__":
             dts = f.read()
         tree = parseTree(dts)
         printTree(tree)
-        dumpDTS(tree)
+        print(tree)
     else:
         print("Please pass the devicetree source file as an argument")
         sys.exit(1)

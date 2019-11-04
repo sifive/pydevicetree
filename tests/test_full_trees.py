@@ -48,13 +48,13 @@ class TestDevicetreeSource(unittest.TestCase):
                     contents = f.read()
 
                 tree = parseTree(contents)
-                backtosource = dumpDTS(tree)
+                backtosource = tree.to_dts()
 
                 # DTS -> Tree -> DTS should yield identical Devicetree sources
                 self.assertTrue(compareIgnoreNewlines(contents, backtosource))
                 
                 backtotree = parseTree(backtosource)
-                backtosourceagain = dumpDTS(backtotree)
+                backtosourceagain = backtotree.to_dts()
 
                 # DTS -> Tree -> DTS -> Tree -> DTS should yield all identical
                 # identical Devicetree Sources

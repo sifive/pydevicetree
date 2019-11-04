@@ -33,9 +33,8 @@ class TestDevicetree(unittest.TestCase):
         tree = parseTree(self.source)
 
         self.assertEqual(type(tree), Devicetree)
-        self.assertEqual(type(tree.elements[1]), Node)
 
-        cpu = tree.elements[2].children[0].children[0]
+        cpu = tree.children[1].children[0].children[0]
 
         self.assertEqual(type(cpu), Node)
         self.assertEqual(cpu.name, "cpu")

@@ -8,13 +8,66 @@ from typing import List, Union, Optional, TypeVar, Type, Iterable, Callable, cas
 Element = Union['Node', 'Property', 'Directive']
 ElementList = Iterable[Element]
 MatchCallback = Optional[Callable[['Node'], None]]
-PropertyValue = Optional[Union[int, str]]
-PropertyValues = List[PropertyValue]
 DirectiveOption = List[Any]
-ChosenCallback = Optional[Callable[[PropertyValues], None]]
+ChosenCallback = Optional[Callable[['PropertyValues'], None]]
+
+def formatLevel(level: int, s: str) -> str:
+    return "\t" * level + s
+
+def wrapStrings(values: List[Any], formatHex: bool = False) -> List[Any]:
+    wrapped = []
+    for v in values:
+        if type(v) is str:
+            if v[0] != '&':
+                wrapped.append("\"%s\"" % v)
+            else:
+                wrapped.append(v)
+        elif type(v) is int:
+            if formatHex:
+                wrapped.append("0x%x" % v)
+            else:
+                wrapped.append(str(v))
+        else:
+            wrapped.append(str(v))
+    return wrapped
+
+class PropertyValues:
+    def __init__(self, values: List[Any] = []):
+        self.values = values
+
+    def __repr__(self) -> str:
+        return "<PropertyValues " + self.values.__repr__() + ">"
+
+    def __str__(self) -> str:
+        return self.to_dts()
+
+    def __iter__(self):
+        return iter(self.values)
+
+    def __len__(self) -> int:
+        return len(self.values)
+
+    def to_dts(self, formatHex: bool = False) -> str:
+        return "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
+
+    def __getitem__(self, key) -> Any:
+        return self.values[key]
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, PropertyValues):
+            return self.values == other.values
+        else:
+            return self.values == other
+
+class StringList(PropertyValues):
+    def __init__(self, strings: List[str] = []):
+        PropertyValues.__init__(self, strings)
+
+    def to_dts(self, formatHex: bool = False) -> str:
+        return ", ".join(wrapStrings(self.values))
 
 class Property:
-    def __init__(self, name: str, values: PropertyValues = []):
+    def __init__(self, name: str, values: PropertyValues):
         self.name = name
         self.values = values
 
@@ -22,10 +75,18 @@ class Property:
         return "<Property %s>" % self.name
 
     def __str__(self) -> str:
-        if self.values:
-            return "Property %s: %s" % (self.name, self.values)
+        return self.to_dts()
+
+    def to_dts(self, level: int = 0) -> str:
+        if self.name in ["reg", "ranges"]:
+            value = self.values.to_dts(formatHex = True)
         else:
-            return "Property %s" % self.name
+            value = self.values.to_dts(formatHex = False)
+
+        if self.values:
+            return formatLevel(level, "%s = %s;\n" % (self.name, value))
+        else:
+            return formatLevel(level, "%s;\n" % self.name)
 
 class Directive:
     def __init__(self, directive: str, options: DirectiveOption = []):
@@ -36,7 +97,13 @@ class Directive:
         return "<Directive %s>" % self.directive
 
     def __str__(self) -> str:
-        return "Directive %s" % self.directive
+        return self.to_dts()
+
+    def to_dts(self, level: int = 0) -> str:
+        if self.options:
+            return formatLevel(level, "%s %s;\n" % (self.directive, self.options))
+        else:
+            return formatLevel(level, "%s;\n" % self.directive)
 
 class Node:
     def __init__(self, name: str, label: Optional[str] = None, address: Optional[str] = None, properties: List[Property] = [], directives: List[Directive] = [], children: List['Node'] = []):
@@ -56,18 +123,48 @@ class Node:
             return "<Node %s>" % self.name
 
     def __str__(self) -> str:
-        return "Node %s" % self.name
+        return self.to_dts()
 
-    def get_fields(self, field_name: str) -> PropertyValues:
+    def to_dts(self, level: int = 0) -> str:
+        out = ""
+        if type(self.address) is int and self.label:
+            out += formatLevel(level, "%s: %s@%x {\n" % (self.label, self.name, cast(int, self.address)))
+        elif type(self.address) is int:
+            out += formatLevel(level, "%s@%x {\n" % (self.name, cast(int, self.address)))
+        elif self.label:
+            out += formatLevel(level, "%s: %s {\n" % (self.label, self.name))
+        elif self.name != "":
+            out += formatLevel(level, "%s {\n" % self.name)
+
+        for d in self.directives:
+            out += d.to_dts(level + 1)
+        for p in self.properties:
+            out += p.to_dts(level + 1)
+        for c in self.children:
+            out += c.to_dts(level + 1)
+
+        if self.name != "":
+            out += formatLevel(level, "};\n")
+
+        return out
+
+    def child_nodes(self) -> Iterable['Node']:
+        for n in self.children:
+            yield n
+            for m in n.child_nodes():
+                yield m
+
+    def get_fields(self, field_name: str) -> Optional[PropertyValues]:
         for p in self.properties:
             if p.name == field_name:
                 return p.values
-        return []
+        return None
 
-    def get_field(self, field_name: str) -> PropertyValue:
+    def get_field(self, field_name: str) -> Any:
         fields = self.get_fields(field_name)
-        if len(fields) != 0:
-            return fields[0]
+        if fields is not None:
+            if len(cast(PropertyValues, fields)) != 0:
+                return fields[0]
         return None
 
     def address_cells(self):
@@ -88,35 +185,44 @@ class Node:
         # No size cells found
         return 0
 
-class Devicetree:
+class Devicetree(Node):
     def __init__(self, elements: ElementList = []):
-        self.elements = elements
+        properties = [] # type: List[Property]
+        directives = [] # type: List[Directive]
+        children = [] # type: List[Node]
 
-    def __iter__(self) -> ElementList:
-        return iter(self.elements)
+        for e in elements:
+            if type(e) is Node:
+                children.append(cast(Node, e))
+            elif type(e) is Property:
+                properties.append(cast(Property, e))
+            elif type(e) is Directive:
+                directives.append(cast(Directive, e))
+
+        Node.__init__(self, name="", properties=properties, directives=directives, children=children)
+
+    def to_dts(self, level: int = 0) -> str:
+        out = ""
+
+        for d in self.directives:
+            out += d.to_dts()
+        for p in self.properties:
+            out += p.to_dts()
+        for c in self.children:
+            out += c.to_dts()
+
+        return out
 
     @staticmethod
-    def parseFile(filename: str, followIncludes: Optional[bool] = False) -> 'Devicetree':
+    def parseFile(filename: str, followIncludes: bool = False) -> 'Devicetree':
         from source import parseTree
         with open(filename, 'r') as f:
             contents = f.read()
         pwd = os.path.dirname(filename) + "/"
-        return Devicetree(parseTree(contents, pwd, followIncludes))
+        return parseTree(contents, pwd, followIncludes)
 
-    def dump(self) -> None:
-        from source import printTree
-        printTree(self.elements)
-
-    def top_level_nodes(self) -> List[Node]:
-        return cast(List[Node], list(filter(lambda e: type(e) is Node, self.elements)))
-
-    def all_nodes(self) -> List[Node]:
-        def all_nodes_recurse(nodes: List[Node]) -> List[Node]:
-            list_of_nodes = nodes
-            for node in nodes:
-                list_of_nodes += all_nodes_recurse(node.children)
-            return list_of_nodes
-        return all_nodes_recurse(self.top_level_nodes())
+    def all_nodes(self) -> Iterable[Node]:
+        return self.child_nodes()
 
     def match(self, compatible: Pattern, func: MatchCallback = None) -> List[Node]:
         regex = re.compile(compatible)
