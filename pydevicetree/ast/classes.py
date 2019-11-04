@@ -203,6 +203,10 @@ class Devicetree(Node):
 
         Node.__init__(self, name="", properties=properties, directives=directives, children=children)
 
+    def __repr__(self) -> str:
+        name = self.root().get_field("compatible")
+        return "<Devicetree %s>" % name
+
     def to_dts(self, level: int = 0) -> str:
         out = ""
 
@@ -225,6 +229,12 @@ class Devicetree(Node):
 
     def all_nodes(self) -> Iterable[Node]:
         return self.child_nodes()
+
+    def root(self) -> Node:
+        for n in self.all_nodes():
+            if n.name == "/":
+                return n
+        raise Exception("Devicetree has no root node!")
 
     def match(self, compatible: Pattern, func: MatchCallback = None) -> List[Node]:
         regex = re.compile(compatible)
