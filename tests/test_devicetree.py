@@ -27,6 +27,18 @@ class TestDevicetree(unittest.TestCase):
                     reg = <1>;
                 };
             };
+            soc {
+                delete-property {
+                    delete-me = "foo";
+                    /delete-property/ delete-me;
+                };
+                delete_label: delete-by-label {
+                };
+                delete-by-name {
+                };
+                /delete-node/ &delete_label;
+                /delete-node/ delete-by-name;
+            };
         };
         """
 
@@ -47,6 +59,17 @@ class TestDevicetree(unittest.TestCase):
         cpus = tree.get_by_path("/cpus")
         self.assertEqual(cpus.name, "cpus")
         self.assertEqual(len(cpus.children), 2)
+
+    def test_delete_directive(self):
+        tree = parseTree(self.source)
+
+        soc = tree.get_by_path("/soc")
+        self.assertEqual(type(soc), Node)
+        self.assertEqual(len(soc.children), 1)
+
+        delete_property = tree.get_by_path("/soc/delete-property")
+        self.assertEqual(type(delete_property), Node)
+        self.assertEqual(delete_property.get_field("delete-me"), None)
 
     def test_get_by_label(self):
         tree = parseTree(self.source)

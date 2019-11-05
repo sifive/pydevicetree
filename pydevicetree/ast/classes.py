@@ -141,6 +141,24 @@ class Node:
         self.directives = directives
         self.children = children
 
+        for d in self.directives:
+            name = d.directive
+            if name == "/delete-node/":
+                option = d.options
+                node = self.get_by_reference(option)
+                if node:
+                    del self.children[self.children.index(node)]
+                else:
+                    node = self.__get_child_by_handle(option)
+                    if node:
+                        del self.children[self.children.index(node)]
+            elif name == "/delete-property/":
+                option = d.options
+                # pylint: disable=cell-var-from-loop
+                properties = list(filter(lambda p: p.name == option, self.properties))
+                if properties:
+                    del self.properties[self.properties.index(properties[0])]
+
     def __repr__(self) -> str:
         if self.address:
             return "<Node %s@%x>" % (self.name, self.address)
