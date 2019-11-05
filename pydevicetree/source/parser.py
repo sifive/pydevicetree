@@ -37,6 +37,11 @@ def transformTernary(string, location, tokens):
     # pylint: disable=eval-used
     return eval(str(tokens[2]) +" if " + str(tokens[0]) + " else " + str(tokens[4]))
 
+def transformPropertyValues(string, location, tokens):
+    if len(tokens.asList()) == 1:
+        return tokens.asList()[0]
+    return PropertyValues(tokens.asList())
+
 def transformStringList(string, location, tokens):
     return StringList(tokens.asList())
 
@@ -58,6 +63,7 @@ ternary_expr.setParseAction(transformTernary)
 stringlist.setParseAction(transformStringList)
 bytestring.setParseAction(transformBytestring)
 cell_array.setParseAction(transformCellArray)
+property_values.setParseAction(transformPropertyValues)
 
 def printTree(tree, level=0):
     def printlevel(level, s):

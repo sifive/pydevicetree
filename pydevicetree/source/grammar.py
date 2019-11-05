@@ -31,8 +31,10 @@ cell_array = p.Literal("<").suppress() + \
         p.Literal(">").suppress()
 bytestring = p.Literal("[").suppress() + \
         (p.OneOrMore(p.Word(p.hexnums, exact=2) ^ label_creation)) + p.Literal("]").suppress()
+property_values = p.Forward()
+property_values = p.delimitedList(property_values ^ cell_array ^ bytestring ^ stringlist)
 property_assignment = property_name("property_name") + p.Optional(p.Literal("=").suppress() + \
-        (cell_array ^ bytestring ^ stringlist)).setResultsName("value") + p.Literal(";").suppress()
+        (property_values)).setResultsName("value") + p.Literal(";").suppress()
 
 node_opener = p.Optional(label_creation) + node_name("node_name") + \
         p.Optional(p.Literal("@").suppress() + unit_address("address")) + p.Literal("{").suppress()

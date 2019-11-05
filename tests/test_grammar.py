@@ -22,6 +22,23 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(cell_array.parseString("<1 (1 + 1) 3>")[0], [1, 2, 3])
         self.assertEqual(cell_array.parseString("<1 2 label: 3>")[0], [1, 2, "label:", 3])
 
+    def test_prop_value_comma_separated(self):
+        from pydevicetree.ast.classes import PropertyValues, CellArray, StringList
+        # this test taken straight from the Devicetree v0.2 specification page 52
+        teststring = "example = <0xf00f0000 19>, \"a strange property format\";"
+
+        prop = property_assignment.parseString(teststring)[0]
+        self.assertEqual(prop.name, "example")
+
+        self.assertEqual(type(prop.values), PropertyValues)
+
+        self.assertEqual(type(prop.values[0]), CellArray)
+        self.assertEqual(prop.values[0][0], 0xf00f0000)
+        self.assertEqual(prop.values[0][1], 19)
+
+        self.assertEqual(type(prop.values[1]), StringList)
+        self.assertEqual(prop.values[1][0], "a strange property format")
+
     def test_node_definition(self):
         from pydevicetree.ast.classes import Node
         node = node_definition.parseString("label: my-node@DEADBEEF { my-property; compatible = \"my-node\"; };")[0]
