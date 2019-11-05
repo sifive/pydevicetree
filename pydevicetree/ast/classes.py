@@ -198,31 +198,31 @@ class Node:
             return matching_nodes[0]
         return None
 
-    def get_by_path(self, path: str) -> Optional['Node']:
-        # strip leading slashes
-        if path[0] == '/':
-            node_handles = ["/"] + path[1:].split("/")
+    def __get_child_by_handle(self, handle: str) -> Optional['Node']:
+        if '@' in handle:
+            name, addr_s = handle.split('@')
+            address = int(addr_s)
+            nodes = list(filter(lambda n: n.name == name and n.address == address, self.children))
         else:
-            node_handles = path.split("/")
+            name = handle
+            nodes = list(filter(lambda n: n.name == name, self.children))
 
-        if len(node_handles) == 0:
-            return self
-        node_handle = node_handles[0]
-
-        if "@" in node_handle:
-            node_name, node_addr = node_handle.split("@")
-        else:
-            node_name = node_handle
-
-        nodes_with_name = list(filter(lambda node: node.name == node_name, self.children))
-        if len(nodes_with_name) == 1:
-            return nodes_with_name[0].get_by_path("/".join(node_handles[1:]))
-        if len(nodes_with_name) > 1:
-            nodes_with_addr = list(filter(lambda node: node.address == int(node_addr),
-                                          nodes_with_name))
-            if len(nodes_with_addr) == 1:
-                return nodes_with_addr[0]
+        if not nodes:
             return None
+        if len(nodes) > 1:
+            raise Exception("Handle %s is ambiguous!" % handle)
+        return nodes[0]
+
+    def get_by_path(self, path: str) -> Optional['Node']:
+        node_handles = list(filter(lambda s: s != '', path.split("/")))
+
+        if not node_handles:
+            return self
+
+        node = self.__get_child_by_handle(node_handles[0])
+
+        if node:
+            return node.get_by_path('/'.join(node_handles[1:]))
         return None
 
     def child_nodes(self) -> Iterable['Node']:
@@ -326,6 +326,9 @@ class Devicetree(Node):
             out += c.to_dts()
 
         return out
+
+    def get_by_path(self, path: str) -> Optional[Node]:
+        return self.root().get_by_path(path)
 
     @staticmethod
     def parseFile(filename: str, followIncludes: bool = False) -> 'Devicetree':
