@@ -27,10 +27,11 @@ ternary_expr = ternary_element + p.Literal("?") + ternary_element + p.Literal(":
 arith_expr = p.nestedExpr(content=(p.OneOrMore(operator ^ integer) ^ ternary_expr))
 
 cell_array = p.Literal("<").suppress() + \
-        p.ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation) + \
+        p.ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation.suppress()) + \
         p.Literal(">").suppress()
 bytestring = p.Literal("[").suppress() + \
-        (p.OneOrMore(p.Word(p.hexnums, exact=2) ^ label_creation)) + p.Literal("]").suppress()
+        (p.OneOrMore(p.Word(p.hexnums, exact=2) ^ label_creation.suppress())) + \
+        p.Literal("]").suppress()
 property_values = p.Forward()
 property_values = p.delimitedList(property_values ^ cell_array ^ bytestring ^ stringlist)
 property_assignment = property_name("property_name") + p.Optional(p.Literal("=").suppress() + \
