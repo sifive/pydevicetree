@@ -36,6 +36,18 @@ class TestDevicetree(unittest.TestCase):
         cpu0 = tree.match("riscv")[0]
         self.assertEqual(cpu0.get_path(), "/cpus/cpu@0")
 
+    def test_get_by_path(self):
+        tree = parseTree(self.source)
+
+        cpu0 = tree.get_by_path("/cpus/cpu@0")
+        self.assertEqual(cpu0.name, "cpu")
+        self.assertEqual(cpu0.address, 0)
+        self.assertEqual(cpu0.get_field("compatible"), "riscv")
+
+        cpus = tree.get_by_path("/cpus")
+        self.assertEqual(cpus.name, "cpus")
+        self.assertEqual(len(cpus.children), 2)
+
     def test_get_field(self):
         tree = parseTree(self.source)
 
