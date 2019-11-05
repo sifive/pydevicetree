@@ -16,7 +16,7 @@ class TestDevicetree(unittest.TestCase):
             #address-cells = <2>;
             #size-cells = <2>;
             cpus {
-                cpu@0 {
+                cpu0: cpu@0 {
                     #address-cells = <1>;
                     compatible = "riscv";
                     reg = <0>;
@@ -47,6 +47,14 @@ class TestDevicetree(unittest.TestCase):
         cpus = tree.get_by_path("/cpus")
         self.assertEqual(cpus.name, "cpus")
         self.assertEqual(len(cpus.children), 2)
+
+    def test_get_by_label(self):
+        tree = parseTree(self.source)
+
+        cpu0 = tree.get_by_label("cpu0")
+        self.assertEqual(cpu0.name, "cpu")
+        self.assertEqual(cpu0.address, 0)
+        self.assertEqual(cpu0.get_field("compatible"), "riscv")
 
     def test_get_field(self):
         tree = parseTree(self.source)
