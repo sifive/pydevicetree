@@ -182,11 +182,57 @@ class Node:
             return self.parent.get_path() + "/" + self.name + "@" + ("%x" % self.address)
         return self.parent.get_path() + "/" + self.name
 
+    def get_by_reference(self, reference: str) -> Optional['Node']:
+        match_path = re.match(r"&{(?P<path>[/\w\d,\._\+-@]*)}", reference, re.ASCII)
+        match_label = re.match(r"&(?P<label>[\d\w_]*)", reference, re.ASCII)
+
+        if match_path:
+            return self.get_by_path(match_path.group("path"))
+        if match_label:
+            return self.get_by_label(match_label.group("label"))
+        return None
+
+    def get_by_label(self, label: str) -> Optional['Node']:
+        matching_nodes = list(filter(lambda n: n.label == label, self.child_nodes()))
+        if len(matching_nodes) != 0:
+            return matching_nodes[0]
+        return None
+
+    def get_by_path(self, path: str) -> Optional['Node']:
+        # strip leading slashes
+        if path[0] == '/':
+            node_handles = ["/"] + path[1:].split("/")
+        else:
+            node_handles = path.split("/")
+
+        if len(node_handles) == 0:
+            return self
+        node_handle = node_handles[0]
+
+        if "@" in node_handle:
+            node_name, node_addr = node_handle.split("@")
+        else:
+            node_name = node_handle
+
+        nodes_with_name = list(filter(lambda node: node.name == node_name, self.children))
+        if len(nodes_with_name) == 1:
+            return nodes_with_name[0].get_by_path("/".join(node_handles[1:]))
+        if len(nodes_with_name) > 1:
+            nodes_with_addr = list(filter(lambda node: node.address == int(node_addr),
+                                          nodes_with_name))
+            if len(nodes_with_addr) == 1:
+                return nodes_with_addr[0]
+            return None
+        return None
+
     def child_nodes(self) -> Iterable['Node']:
         for n in self.children:
             yield n
             for m in n.child_nodes():
                 yield m
+
+    def remove_child(self, node):
+        del self.children[self.children.index(node)]
 
     def get_fields(self, field_name: str) -> Optional[PropertyValues]:
         for p in self.properties:
@@ -219,6 +265,22 @@ class Node:
         # No size cells found
         return 0
 
+class NodeReference(Node):
+    def __init__(self, reference: str, properties: List[Property] = None,
+                 directives: List[Directive] = None, children: List[Node] = None):
+        self.reference = reference
+        Node.__init__(self, name="", properties=properties, directives=directives,
+                      children=children)
+
+    def __repr__(self) -> str:
+        return "<NodeReference %s>" % self.reference
+
+    def resolve_reference(self, tree: 'Devicetree') -> Node:
+        node = tree.get_by_reference(self.reference)
+        if node is None:
+            raise Exception("Node reference %s cannot be resolved" % self.reference)
+        return cast(Node, node)
+
 class Devicetree(Node):
     def __init__(self, elements: ElementList = None):
         properties = [] # type: List[Property]
@@ -235,6 +297,19 @@ class Devicetree(Node):
 
         Node.__init__(self, name="",
                       properties=properties, directives=directives, children=children)
+
+        for node in self.children:
+            node.parent = self
+
+        reference_nodes = filter(lambda node: isinstance(node, NodeReference), self.all_nodes())
+        for refnode in reference_nodes:
+            node = refnode.resolve_reference(self)
+
+            refnode.parent.remove_child(refnode)
+
+            node.properties += refnode.properties
+            node.directives += refnode.directives
+            node.children += refnode.children
 
     def __repr__(self) -> str:
         name = self.root().get_field("compatible")

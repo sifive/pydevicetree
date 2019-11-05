@@ -27,6 +27,8 @@ class TestOverlay(unittest.TestCase):
             self.assertEqual(uart.get_fields("reg"), [0x1000, 0x1000])
             self.assertEqual(uart.get_field("reg-names"), "control")
 
+        self.assertEqual(fulluart.get_field("status"), "okay")
+
         basepath = base.chosen("stdout-path")
         fullpath = full.chosen("stdout-path")
         self.assertEqual(basepath, None)

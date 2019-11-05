@@ -39,10 +39,12 @@ property_assignment = property_name("property_name") + p.Optional(p.Literal("=")
 
 node_opener = p.Optional(label_creation) + node_name("node_name") + \
         p.Optional(p.Literal("@").suppress() + unit_address("address")) + p.Literal("{").suppress()
+node_reference_opener = reference("node_reference") + p.Literal("{").suppress()
 node_closer = p.Literal("}").suppress() + p.Literal(";").suppress()
 node_definition = p.Forward()
 # pylint: disable=expression-not-assigned
-node_definition << node_opener + p.ZeroOrMore(property_assignment ^ directive ^ node_definition) + \
+node_definition << (node_opener ^ node_reference_opener) + \
+        p.ZeroOrMore(property_assignment ^ directive ^ node_definition) + \
         node_closer
 
 devicetree = p.ZeroOrMore(directive ^ node_definition)

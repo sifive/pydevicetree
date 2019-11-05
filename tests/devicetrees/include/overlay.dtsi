@@ -1,3 +1,7 @@
 chosen {
 	stdout-path = "/soc/uart@1000";
 };
+
+&uart0 {
+	status = "okay";
+};

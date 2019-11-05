@@ -85,5 +85,10 @@ class TestDevicetree(unittest.TestCase):
 
         tree.chosen("my-cpu", func)
 
+        cpu = tree.get_by_reference("&{/cpus/cpu@0}")
+        self.assertEqual(type(cpu), Node)
+        self.assertEqual(cpu.get_path(), "/cpus/cpu@0")
+        self.assertEqual(cpu.get_field("reg"), 0)
+
 if __name__ == "__main__":
     unittest.main()

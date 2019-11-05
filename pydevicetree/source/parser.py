@@ -10,6 +10,9 @@ def transformNode(string, location, tokens):
     directives = [e for e in tokens.asList() if isinstance(e, Directive)]
     children = [e for e in tokens.asList() if isinstance(e, Node)]
 
+    if tokens.node_reference:
+        return NodeReference(tokens.node_reference[0], properties=properties,
+                             directives=directives, children=children)
     return Node(tokens.node_name, tokens.label, tokens.address, properties=properties,
                 directives=directives, children=children)
 
