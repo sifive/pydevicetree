@@ -129,7 +129,7 @@ class Directive:
 
 class Node:
     # pylint: disable=too-many-arguments
-    def __init__(self, name: str, label: Optional[str] = None, address: Optional[str] = None,
+    def __init__(self, name: str, label: Optional[str] = None, address: Optional[int] = None,
                  properties: List[Property] = None, directives: List[Directive] = None,
                  children: List['Node'] = None):
         self.name = name
@@ -143,7 +143,7 @@ class Node:
 
     def __repr__(self) -> str:
         if self.address:
-            return "<Node %s@%s>" % (self.name, self.address)
+            return "<Node %s@%x>" % (self.name, self.address)
         return "<Node %s>" % self.name
 
     def __str__(self) -> str:
@@ -153,9 +153,9 @@ class Node:
         out = ""
         if isinstance(self.address, int) and self.label:
             out += formatLevel(level,
-                               "%s: %s@%x {\n" % (self.label, self.name, cast(int, self.address)))
+                               "%s: %s@%x {\n" % (self.label, self.name, self.address))
         elif isinstance(self.address, int):
-            out += formatLevel(level, "%s@%x {\n" % (self.name, cast(int, self.address)))
+            out += formatLevel(level, "%s@%x {\n" % (self.name, self.address))
         elif self.label:
             out += formatLevel(level, "%s: %s {\n" % (self.label, self.name))
         elif self.name != "":
@@ -172,6 +172,15 @@ class Node:
             out += formatLevel(level, "};\n")
 
         return out
+
+    def get_path(self) -> str:
+        if self.name == "/":
+            return ""
+        if self.parent is None:
+            return "/" + self.name
+        if isinstance(self.address, int):
+            return self.parent.get_path() + "/" + self.name + "@" + ("%x" % self.address)
+        return self.parent.get_path() + "/" + self.name
 
     def child_nodes(self) -> Iterable['Node']:
         for n in self.children:
