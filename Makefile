@@ -26,3 +26,7 @@ test: test-unit
 
 .PHONY: test
 test:
+
+.PHONY: clean
+clean:
+	-rm -rf venv .mypy_cache __pycache__
