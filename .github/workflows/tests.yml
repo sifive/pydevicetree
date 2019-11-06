@@ -1,6 +1,10 @@
 name: pydevicetree-tests
 
-on: [push]
+on:
+  push:
+    path-ignore:
+      - '**.md'
+      - 'LICENSE'
 
 jobs:
   build:
