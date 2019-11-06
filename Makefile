@@ -9,6 +9,10 @@ venv/bin/activate:
 .PHONY: virtualenv
 virtualenv: venv/bin/activate
 
+.PHONY: dist
+dist: venv/bin/activate
+	. $< && python3 setup.py sdist bdist_wheel
+
 .PHONY: test-types
 test-types: venv/bin/activate
 	. $< && mypy -m unittest
