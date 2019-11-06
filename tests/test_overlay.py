@@ -34,5 +34,9 @@ class TestOverlay(unittest.TestCase):
         self.assertEqual(basepath, None)
         self.assertEqual(fullpath, ["/soc/uart@1000"])
 
+        cpus = full.get_by_path("/cpus")
+        self.assertEqual(type(cpus), Node)
+        self.assertEqual(len(cpus.children), 2)
+
 if __name__ == "__main__":
     unittest.main()

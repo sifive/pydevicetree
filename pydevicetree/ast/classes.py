@@ -159,6 +159,32 @@ class Node:
                 if properties:
                     del self.properties[self.properties.index(properties[0])]
 
+    def merge_tree(self):
+        partitioned_children = []
+        for n in self.children:
+            partitioned_children.append([e for e in self.children if e == n])
+
+        new_children = []
+        for part in partitioned_children:
+            first = part[0]
+            rest = part[1:]
+            if first not in new_children:
+                for n in rest:
+                    first.merge(n)
+                new_children.append(first)
+
+        self.children = new_children
+
+        for n in self.children:
+            n.merge_tree()
+
+    def merge(self, other: 'Node'):
+        if not self.label and other.label:
+            self.label = other.label
+        self.properties += other.properties
+        self.directives += other.directives
+        self.children += other.children
+
     def __repr__(self) -> str:
         if self.address:
             return "<Node %s@%x>" % (self.name, self.address)
@@ -166,6 +192,12 @@ class Node:
 
     def __str__(self) -> str:
         return self.to_dts()
+
+    def __eq__(self, other) -> bool:
+        return self.name == other.name and self.address == other.address
+
+    def __hash__(self):
+        return hash((self.name, self.address))
 
     def to_dts(self, level: int = 0) -> str:
         out = ""
@@ -328,6 +360,8 @@ class Devicetree(Node):
             node.properties += refnode.properties
             node.directives += refnode.directives
             node.children += refnode.children
+
+        self.merge_tree()
 
     def __repr__(self) -> str:
         name = self.root().get_field("compatible")

@@ -2,6 +2,16 @@ chosen {
 	stdout-path = "/soc/uart@1000";
 };
 
+/ {
+	cpus {
+		cpu@1 {
+			#size-cells = <0>;
+			compatible = "riscv";
+			reg = <1>;
+		};
+	};
+};
+
 &uart0 {
 	status = "okay";
 };
