@@ -45,3 +45,4 @@ test:
 .PHONY: clean
 clean:
 	-rm -rf venv .mypy_cache __pycache__
+	-rm -rf build dist pydevicetree.egg-info
