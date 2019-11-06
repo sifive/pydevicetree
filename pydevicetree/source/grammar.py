@@ -49,6 +49,9 @@ node_definition << (node_opener ^ node_reference_opener) + \
 
 devicetree = p.ZeroOrMore(directive ^ node_definition)
 
+devicetree.ignore(p.cStyleComment)
+devicetree.ignore("//" + p.SkipTo(p.lineEnd))
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:

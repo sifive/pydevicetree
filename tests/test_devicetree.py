@@ -9,11 +9,12 @@ class TestDevicetree(unittest.TestCase):
     def setUp(self):
         self.source = """
         /dts-v1/;
+        /* ignore this comment */
         chosen {
             my-cpu = "/cpus/cpu@0";
         };
         / {
-            #address-cells = <2>;
+            #address-cells = <2>; // ignore this comment
             #size-cells = <2>;
             cpus {
                 cpu0: cpu@0 {
@@ -23,6 +24,7 @@ class TestDevicetree(unittest.TestCase):
                 };
                 cpu@1 {
                     #size-cells = <1>;
+                    /* ignore this comment */
                     compatible = "riscv";
                     reg = <1>;
                 };
