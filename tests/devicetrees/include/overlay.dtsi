@@ -1,3 +1,5 @@
+// Copyright (c) 2019 SiFive Inc
+// SPDX-License-Identifier: Apache-2.0
 chosen {
 	stdout-path = "/soc/uart@1000";
 };

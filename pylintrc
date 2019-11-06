@@ -1,3 +1,5 @@
+# Copyright (c) 2019 SiFive Inc.
+# SPDX-License-Identifier: Apache-2.0
 [MASTER]
 
 # A comma-separated list of package or module names from where C extensions may

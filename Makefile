@@ -1,3 +1,5 @@
+# Copyright (c) 2019 SiFive Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 venv/bin/activate:
 	python3 -m venv venv
