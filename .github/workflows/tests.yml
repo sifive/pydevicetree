@@ -35,4 +35,7 @@ jobs:
       - name: Run integration tests
         run:
           make test-integration
+      - name: Make distribution
+        run:
+          make dist
 
