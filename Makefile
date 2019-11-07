@@ -11,6 +11,7 @@ virtualenv: venv/bin/activate
 
 .PHONY: dist
 dist: venv/bin/activate
+	. $< && pip install --upgrade setuptools wheel
 	. $< && python3 setup.py sdist bdist_wheel
 
 .PHONY: upload
