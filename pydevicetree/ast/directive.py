@@ -8,6 +8,7 @@ from pydevicetree.ast.helpers import formatLevel
 
 class Directive:
     def __init__(self, directive: str, options: List[Any] = None):
+        """Create a directive object"""
         self.directive = directive
         self.options = options
 
@@ -18,6 +19,7 @@ class Directive:
         return self.to_dts()
 
     def to_dts(self, level: int = 0) -> str:
+        """Format the Directive in Devicetree Source format"""
         if self.options:
             return formatLevel(level, "%s %s;\n" % (self.directive, self.options))
         return formatLevel(level, "%s;\n" % self.directive)
