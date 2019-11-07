@@ -2,132 +2,20 @@
 # Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import re
+import os
+from typing import List, Union, Optional, Iterable, Callable, Any, cast, Pattern
 
-from typing import List, Union, Optional, Iterable, Callable, cast, Any, Pattern
+from pydevicetree.ast.helpers import formatLevel
+from pydevicetree.ast.property import Property, PropertyValues
+from pydevicetree.ast.directive import Directive
 
-# These  names are just used in the constructors for these clasess
-ElementList = Iterable[Union['Node', 'Property', 'Directive']]
-DirectiveOption = List[Any]
+# Type signature for elements passed to Devicetree constructor
+ElementList = Iterable[Union['Node', Property, Directive]]
 
-# Callback isinstance signatures for Devicetree.match() and Devicetree.chosen()
+# Callback type signatures for Devicetree.match() and Devicetree.chosen()
 MatchCallback = Optional[Callable[['Node'], None]]
-ChosenCallback = Optional[Callable[['PropertyValues'], None]]
-
-def formatLevel(level: int, s: str) -> str:
-    return "\t" * level + s
-
-def wrapStrings(values: List[Any], formatHex: bool = False) -> List[Any]:
-    wrapped = []
-    for v in values:
-        if isinstance(v, str):
-            if v[0] != '&':
-                wrapped.append("\"%s\"" % v)
-            else:
-                wrapped.append(v)
-        elif isinstance(v, int):
-            if formatHex:
-                wrapped.append("0x%x" % v)
-            else:
-                wrapped.append(str(v))
-        else:
-            wrapped.append(str(v))
-    return wrapped
-
-class PropertyValues:
-    def __init__(self, values: List[Any] = None):
-        self.values = values
-
-    def __repr__(self) -> str:
-        return "<PropertyValues " + self.values.__repr__() + ">"
-
-    def __str__(self) -> str:
-        return self.to_dts()
-
-    def __iter__(self):
-        return iter(self.values)
-
-    def __len__(self) -> int:
-        return len(self.values)
-
-    def to_dts(self, formatHex: bool = False) -> str:
-        return " ".join(wrapStrings(self.values, formatHex))
-
-    def __getitem__(self, key) -> Any:
-        return self.values[key]
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, PropertyValues):
-            return self.values == other.values
-        return self.values == other
-
-class Bytestring(PropertyValues):
-    def __init__(self, bytelist: List[int] = None):
-        PropertyValues.__init__(self, bytearray(bytelist))
-
-    def __repr__(self) -> str:
-        return "<Bytestring " + str(self.values) + ">"
-
-    def to_dts(self, formatHex: bool = False) -> str:
-        return "[" + " ".join("%02x" % v for v in self.values) + "]"
-
-class CellArray(PropertyValues):
-    def __init__(self, cells: List[Any] = None):
-        PropertyValues.__init__(self, cells)
-
-    def __repr__(self) -> str:
-        return "<CellArray " + self.values.__repr__() + ">"
-
-    def to_dts(self, formatHex: bool = False) -> str:
-        return "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
-
-class StringList(PropertyValues):
-    def __init__(self, strings: List[str] = None):
-        PropertyValues.__init__(self, strings)
-
-    def __repr__(self) -> str:
-        return "<StringList " + self.values.__repr__() + ">"
-
-    def to_dts(self, formatHex: bool = False) -> str:
-        return ", ".join(wrapStrings(self.values))
-
-class Property:
-    def __init__(self, name: str, values: PropertyValues):
-        self.name = name
-        self.values = values
-
-    def __repr__(self) -> str:
-        return "<Property %s>" % self.name
-
-    def __str__(self) -> str:
-        return self.to_dts()
-
-    def to_dts(self, level: int = 0) -> str:
-        if self.name in ["reg", "ranges"]:
-            value = self.values.to_dts(formatHex=True)
-        else:
-            value = self.values.to_dts(formatHex=False)
-
-        if value != "":
-            return formatLevel(level, "%s = %s;\n" % (self.name, value))
-        return formatLevel(level, "%s;\n" % self.name)
-
-class Directive:
-    def __init__(self, directive: str, options: DirectiveOption = None):
-        self.directive = directive
-        self.options = options
-
-    def __repr__(self) -> str:
-        return "<Directive %s>" % self.directive
-
-    def __str__(self) -> str:
-        return self.to_dts()
-
-    def to_dts(self, level: int = 0) -> str:
-        if self.options:
-            return formatLevel(level, "%s %s;\n" % (self.directive, self.options))
-        return formatLevel(level, "%s;\n" % self.directive)
+ChosenCallback = Optional[Callable[[PropertyValues], None]]
 
 class Node:
     # pylint: disable=too-many-arguments

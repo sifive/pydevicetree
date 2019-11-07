@@ -30,7 +30,7 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(cell_array.parseString("<1 2 label: 3>")[0], [1, 2, 3])
 
     def test_prop_value_comma_separated(self):
-        from pydevicetree.ast.classes import PropertyValues, CellArray, StringList
+        from pydevicetree.ast import PropertyValues, CellArray, StringList
         # this test taken straight from the Devicetree v0.2 specification page 52
         teststring = "example = <0xf00f0000 19>, \"a strange property format\";"
 
@@ -47,7 +47,7 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(prop.values[1][0], "a strange property format")
 
     def test_node_definition(self):
-        from pydevicetree.ast.classes import Node
+        from pydevicetree.ast import Node
         node = node_definition.parseString("label: my-node@DEADBEEF { my-property; compatible = \"my-node\"; };")[0]
 
         self.assertEqual(type(node), Node)
@@ -59,7 +59,7 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(node.children, [])
 
     def test_directive(self):
-        from pydevicetree.ast.classes import Directive
+        from pydevicetree.ast import Directive
         dtsv1 = directive.parseString("/dts-v1/;")[0]
 
         self.assertEqual(type(dtsv1), Directive)
