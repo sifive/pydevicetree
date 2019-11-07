@@ -23,7 +23,7 @@ dist-clean: venv/bin/activate
 clean: dist-clean
 
 .PHONY: upload
-upload: venv/bin/activate clean dist
+upload: venv/bin/activate dist
 	. $< && pip install twine
 	. $< && python3 -m twine upload dist/*
 
