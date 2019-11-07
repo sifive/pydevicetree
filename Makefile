@@ -14,6 +14,12 @@ dist: venv/bin/activate
 	. $< && pip install --upgrade setuptools wheel
 	. $< && python3 setup.py sdist bdist_wheel
 
+.PHONY: dist-clean
+dist-clean: venv/bin/activate
+	. $< && python3 setup.py clean --all
+	-rm -rf dist pydevicetree.egg-info
+clean: dist-clean
+
 .PHONY: upload
 upload: venv/bin/activate clean dist
 	. $< && pip install twine
@@ -51,4 +57,3 @@ test:
 .PHONY: clean
 clean:
 	-rm -rf venv .mypy_cache __pycache__
-	-rm -rf build dist pydevicetree.egg-info
