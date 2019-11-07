@@ -13,6 +13,11 @@ virtualenv: venv/bin/activate
 dist: venv/bin/activate
 	. $< && python3 setup.py sdist bdist_wheel
 
+.PHONY: upload
+upload: venv/bin/activate clean dist
+	. $< && pip install twine
+	. $< && python3 -m twine upload dist/*
+
 .PHONY: test-types
 test-types: venv/bin/activate
 	. $< && mypy -m unittest
