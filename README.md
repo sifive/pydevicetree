@@ -71,7 +71,7 @@ Parsing the tree is as easy as 1, 2...
 #### By `compatible` string
 
 ```
->>> tree.match("sifive,rocket0").get_field("timebase-frequency")
+>>> tree.match("sifive,rocket0")
 [<Node cpu>]
 ```
 
