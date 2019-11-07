@@ -165,6 +165,23 @@ class Node:
             return node.get_by_path('/'.join(node_handles[1:]))
         return None
 
+    def match(self, compatible: Pattern, func: MatchCallback = None) -> List['Node']:
+        regex = re.compile(compatible)
+
+        def match_compat(node: Node) -> bool:
+            compatibles = node.get_fields("compatible")
+            if compatibles is not None:
+                return any(regex.match(c) for c in compatibles)
+            return False
+
+        nodes = list(filter(match_compat, self.child_nodes()))
+
+        if func is not None:
+            for n in nodes:
+                func(n)
+
+        return nodes
+
     def child_nodes(self) -> Iterable['Node']:
         for n in self.children:
             yield n
@@ -289,23 +306,6 @@ class Devicetree(Node):
             if n.name == "/":
                 return n
         raise Exception("Devicetree has no root node!")
-
-    def match(self, compatible: Pattern, func: MatchCallback = None) -> List[Node]:
-        regex = re.compile(compatible)
-
-        def match_compat(node: Node) -> bool:
-            compatibles = node.get_fields("compatible")
-            if compatibles is not None:
-                return any(regex.match(c) for c in compatibles)
-            return False
-
-        nodes = list(filter(match_compat, self.all_nodes()))
-
-        if func is not None:
-            for n in nodes:
-                func(n)
-
-        return nodes
 
     def chosen(self, property_name: str, func: ChosenCallback = None) -> Optional[PropertyValues]:
         def match_chosen(node: Node) -> bool:
