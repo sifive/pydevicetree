@@ -1,6 +1,8 @@
 # Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+all: test dist
+
 venv/bin/activate:
 	python3 -m venv venv
 	. $@ && pip install --upgrade pip
@@ -11,7 +13,14 @@ virtualenv: venv/bin/activate
 
 .PHONY: dist
 dist: venv/bin/activate
+	. $< && pip install --upgrade setuptools wheel
 	. $< && python3 setup.py sdist bdist_wheel
+
+.PHONY: dist-clean
+dist-clean: venv/bin/activate
+	. $< && python3 setup.py clean --all
+	-rm -rf dist pydevicetree.egg-info
+clean: dist-clean
 
 .PHONY: upload
 upload: venv/bin/activate clean dist
@@ -50,4 +59,3 @@ test:
 .PHONY: clean
 clean:
 	-rm -rf venv .mypy_cache __pycache__
-	-rm -rf build dist pydevicetree.egg-info
