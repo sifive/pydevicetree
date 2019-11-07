@@ -5,9 +5,11 @@
 from typing import List, Any
 
 def formatLevel(level: int, s: str) -> str:
+    """Helper to indent a string with a number of tabs"""
     return "\t" * level + s
 
 def wrapStrings(values: List[Any], formatHex: bool = False) -> List[Any]:
+    """Helper to wrap strings in quotes where appropriate"""
     wrapped = []
     for v in values:
         if isinstance(v, str):
