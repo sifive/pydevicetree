@@ -4,7 +4,7 @@
 
 from itertools import chain
 
-from pydevicetree.source.grammar import *
+from pydevicetree.source import grammar
 from pydevicetree.ast import *
 
 def transformNode(string, location, tokens):
@@ -60,15 +60,15 @@ def transformBytestring(string, location, tokens):
 def transformCellArray(string, location, tokens):
     return CellArray(tokens.asList())
 
-node_definition.setParseAction(transformNode)
-property_assignment.setParseAction(transformPropertyAssignment)
-directive.setParseAction(transformDirective)
-arith_expr.setParseAction(evaluateArithExpr)
-ternary_expr.setParseAction(transformTernary)
-stringlist.setParseAction(transformStringList)
-bytestring.setParseAction(transformBytestring)
-cell_array.setParseAction(transformCellArray)
-property_values.setParseAction(transformPropertyValues)
+grammar.node_definition.setParseAction(transformNode)
+grammar.property_assignment.setParseAction(transformPropertyAssignment)
+grammar.directive.setParseAction(transformDirective)
+grammar.arith_expr.setParseAction(evaluateArithExpr)
+grammar.ternary_expr.setParseAction(transformTernary)
+grammar.stringlist.setParseAction(transformStringList)
+grammar.bytestring.setParseAction(transformBytestring)
+grammar.cell_array.setParseAction(transformCellArray)
+grammar.property_values.setParseAction(transformPropertyValues)
 
 def printTree(tree, level=0):
     def printlevel(level, s):
@@ -121,7 +121,7 @@ def recurseIncludeFiles(elements, pwd):
                 elements += parseElements(contents)
 
 def parseElements(dts, pwd="", followIncludes=False):
-    elements = devicetree.parseString(dts)
+    elements = grammar.devicetree.parseString(dts)
     parentNodes(elements)
     if followIncludes:
         recurseIncludeFiles(elements, pwd)
