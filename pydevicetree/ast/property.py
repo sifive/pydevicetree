@@ -7,6 +7,14 @@ from typing import List, Any
 from pydevicetree.ast.helpers import wrapStrings, formatLevel
 
 class PropertyValues:
+    """PropertyValues is the parent class of all values which can be assigned to a Property
+
+    Child classes include
+
+        Bytestring
+        CellArray
+        StringList
+    """
     def __init__(self, values: List[Any] = None):
         """Create a PropertyValue"""
         self.values = values
@@ -36,6 +44,13 @@ class PropertyValues:
         return self.values == other
 
 class Bytestring(PropertyValues):
+    """A Bytestring is a sequence of bytes
+
+    In Devicetree, Bytestrings are represented as a sequence of two-digit hexadecimal integers,
+    optionally space-separated, enclosed by square brackets:
+
+        [de ad be eef]
+    """
     def __init__(self, bytelist: List[int] = None):
         """Create a Bytestring object"""
         PropertyValues.__init__(self, bytearray(bytelist))
@@ -48,6 +63,13 @@ class Bytestring(PropertyValues):
         return "[" + " ".join("%02x" % v for v in self.values) + "]"
 
 class CellArray(PropertyValues):
+    """A CellArray is an array of integer values
+
+    CellArrays are commonly used as the value of Devicetree properties like `reg` and `interrupts`.
+    The interpretation of each element of a CellArray is device-dependent. For example, the `reg`
+    property encodes a CellArray as a list of tuples (base address, size), while the `interrupts`
+    property encodes a CellArray as simply a list of interrupt line numbers.
+    """
     def __init__(self, cells: List[Any] = None):
         """Create a CellArray object"""
         PropertyValues.__init__(self, cells)
@@ -60,6 +82,10 @@ class CellArray(PropertyValues):
         return "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
 
 class StringList(PropertyValues):
+    """A StringList is a list of null-terminated strings
+
+    The most common use of a StringList in Devicetree is to describe the `compatible` property.
+    """
     def __init__(self, strings: List[str] = None):
         """Create a StringList object"""
         PropertyValues.__init__(self, strings)
@@ -72,6 +98,37 @@ class StringList(PropertyValues):
         return ", ".join(wrapStrings(self.values))
 
 class Property:
+    """A Property is a key-value pair for a Devicetree Node
+
+    Properties are used to describe Nodes in the tree. There are many common properties, like
+
+        - compatible
+        - reg
+        - reg-names
+        - ranges
+        - interrupt-controller
+        - interrupts
+        - interrupt-parent
+        - clocks
+        - status
+
+    Which might commonly describe many or all nodes in a tree, and there are device, vendor,
+    operating system, runtime-specific properties.
+
+    Properties can possess no value, conveing meaning solely by their presence:
+
+        interrupt-controller;
+
+    Properties can also possess values such as an array of cells, a list of strings, etc.
+
+        reg = <0x10013000 0x1000>;
+        compatible = "sifive,rocket0", "riscv";
+
+    And properties can posses arbitrarily complex values, such as the following from the
+    Devicetree specification:
+
+        example = <0xf00f0000 19>, "a strange property format";
+    """
     def __init__(self, name: str, values: PropertyValues):
         """Create a Property object"""
         self.name = name

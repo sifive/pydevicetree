@@ -18,6 +18,41 @@ MatchCallback = Optional[Callable[['Node'], None]]
 ChosenCallback = Optional[Callable[[PropertyValues], None]]
 
 class Node:
+    """Represents a Devicetree Node
+
+    A Devicetree Node generally takes the form
+
+        [label:] node-name@unit-address {
+            [directives]
+            [properties]
+            [child nodes]
+        };
+
+    The structure formed by creating trees of Nodes is the bulk of any Devicetree. As the naming
+    system implies, then, each node roughly corresponds to some conceptual device, subsystem of
+    devices, bus, etc.
+
+    Devices can be referenced by label or by path, and are generally uniquely identified by a
+    collection of string identifiers assigned to the "compatible" property.
+
+    For instance, a UART device might look like
+
+        uart0: uart@10013000 {
+            compatible = "sifive,uart0";
+            reg = <0x10013000 0x1000>;
+            reg-names = "control";
+            interrupt-parent = <&plic>;
+            interrupts = <3>;
+            clocks = <&busclk>;
+            status = "okay";
+        };
+
+    This node can be identified in the following ways:
+
+        - By label: uart0
+        - By path: /path/to/uart@10013000
+        - By name: uart@10013000 (for example when referenced in a /delete-node/ directive)
+    """
     # pylint: disable=too-many-arguments
     def __init__(self, name: str, label: Optional[str] = None, address: Optional[int] = None,
                  properties: List[Property] = None, directives: List[Directive] = None,
@@ -253,6 +288,11 @@ class Node:
         return 0
 
 class NodeReference(Node):
+    """A NodeReference is used to extend the definition of a previously-defined Node
+
+    NodeReferences are commonly used by Devicetree "overlays" to extend the properties of a node
+    or add child devices, such as to a bus like I2C.
+    """
     def __init__(self, reference: str, properties: List[Property] = None,
                  directives: List[Directive] = None, children: List[Node] = None):
         """Instantiate a Node identified by reference to another node"""
@@ -271,6 +311,13 @@ class NodeReference(Node):
         return cast(Node, node)
 
 class Devicetree(Node):
+    """A Devicetree object describes the full Devicetree tree
+
+    This class encapsulates both the tree itself (starting at the root node /) and any Directives
+    or nodes which exist at the top level of the Devicetree Source files.
+
+    Devicetree Source files can be parsed by calling Devicetree.parseFile().
+    """
     def __init__(self, elements: ElementList = None):
         """Instantiate a Devicetree with the list of parsed elements
 
