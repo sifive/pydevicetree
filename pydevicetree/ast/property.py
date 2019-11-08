@@ -140,6 +140,13 @@ class Property:
     def __str__(self) -> str:
         return self.to_dts()
 
+    @staticmethod
+    def from_dts(dts: str) -> 'Property':
+        """Parse a file and return a Devicetree object"""
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from pydevicetree.source import parseProperty
+        return parseProperty(dts)
+
     def to_dts(self, level: int = 0) -> str:
         """Format the Property assignment in Devicetree Source format"""
         if self.name in ["reg", "ranges"]:

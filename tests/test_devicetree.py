@@ -124,6 +124,13 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(node.address, 0x10013000)
         self.assertEqual(node.get_field("compatible"), "sifive,uart0")
 
+    def test_property_from_dts(self):
+        prop = Property.from_dts("reg = <0x1337 0x42>;")
+
+        self.assertEqual(type(prop), Property)
+        self.assertEqual(prop.name, "reg")
+        self.assertEqual(prop.values, [0x1337, 0x42])
+
     def test_add_child(self):
         new_node = Node.from_dts("uart0: uart@10013000 { compatible = \"sifive,uart0\"; };")
 

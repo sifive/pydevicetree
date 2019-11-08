@@ -148,6 +148,10 @@ def parseNode(dts):
     """Parses a string into a Devictreee Node"""
     return grammar.node_definition.parseString(dts)[0]
 
+def parseProperty(dts):
+    """Parses a string into a Devicetree Property"""
+    return grammar.property_assignment.parseString(dts)[0]
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:
