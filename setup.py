@@ -8,7 +8,7 @@ with open("README.md", "r") as readme:
 
 setuptools.setup(
         name="pydevicetree",
-        version="0.0.3",
+        version="0.0.4",
         author="Nathaniel Graff",
         author_email="nathaniel.graff@sifive.com",
         description="A library for parsing Devicetree Source v1",
