@@ -389,6 +389,14 @@ class Devicetree(Node):
         return self.root().get_by_path(path)
 
     @staticmethod
+    # pylint: disable=arguments-differ
+    def from_dts(dts: str) -> 'Devicetree':
+        """Parse a string and return a Devicetree object"""
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from pydevicetree.source import parseTree
+        return parseTree(dts)
+
+    @staticmethod
     def parseFile(filename: str, followIncludes: bool = False) -> 'Devicetree':
         """Parse a file and return a Devicetree object"""
         # pylint: disable=import-outside-toplevel,cyclic-import

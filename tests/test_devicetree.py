@@ -4,7 +4,6 @@
 
 import unittest
 
-from pydevicetree.source import parseTree
 from pydevicetree.ast import *
 
 class TestDevicetree(unittest.TestCase):
@@ -45,50 +44,39 @@ class TestDevicetree(unittest.TestCase):
             };
         };
         """
+        self.tree = Devicetree.from_dts(self.source)
 
     def test_get_path(self):
-        tree = parseTree(self.source)
-
-        cpu0 = tree.match("riscv")[0]
+        cpu0 = self.tree.match("riscv")[0]
         self.assertEqual(cpu0.get_path(), "/cpus/cpu@0")
 
     def test_get_by_path(self):
-        tree = parseTree(self.source)
-
-        cpu0 = tree.get_by_path("/cpus/cpu@0")
+        cpu0 = self.tree.get_by_path("/cpus/cpu@0")
         self.assertEqual(cpu0.name, "cpu")
         self.assertEqual(cpu0.address, 0)
         self.assertEqual(cpu0.get_field("compatible"), "riscv")
 
-        cpus = tree.get_by_path("/cpus")
+        cpus = self.tree.get_by_path("/cpus")
         self.assertEqual(cpus.name, "cpus")
         self.assertEqual(len(cpus.children), 2)
 
     def test_delete_directive(self):
-        tree = parseTree(self.source)
-
-        soc = tree.get_by_path("/soc")
+        soc = self.tree.get_by_path("/soc")
         self.assertEqual(type(soc), Node)
         self.assertEqual(len(soc.children), 1)
 
-        delete_property = tree.get_by_path("/soc/delete-property")
+        delete_property = self.tree.get_by_path("/soc/delete-property")
         self.assertEqual(type(delete_property), Node)
         self.assertEqual(delete_property.get_field("delete-me"), None)
 
     def test_get_by_label(self):
-        tree = parseTree(self.source)
-
-        cpu0 = tree.get_by_label("cpu0")
+        cpu0 = self.tree.get_by_label("cpu0")
         self.assertEqual(cpu0.name, "cpu")
         self.assertEqual(cpu0.address, 0)
         self.assertEqual(cpu0.get_field("compatible"), "riscv")
 
     def test_get_field(self):
-        tree = parseTree(self.source)
-
-        self.assertEqual(type(tree), Devicetree)
-
-        cpu = tree.match("riscv")[0]
+        cpu = self.tree.match("riscv")[0]
 
         self.assertEqual(type(cpu), Node)
         self.assertEqual(cpu.name, "cpu")
@@ -97,10 +85,8 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(cpu.get_field("reg"), 0)
 
     def test_cells(self):
-        tree = parseTree(self.source)
-
-        cpu0 = tree.match("riscv")[0]
-        cpu1 = tree.match("riscv")[1]
+        cpu0 = self.tree.match("riscv")[0]
+        cpu1 = self.tree.match("riscv")[1]
         self.assertEqual(type(cpu0), Node)
         self.assertEqual(type(cpu1), Node)
 
@@ -110,29 +96,21 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(cpu1.size_cells(), 1)
 
     def test_match(self):
-        tree = parseTree(self.source)
-
-        self.assertEqual(type(tree), Devicetree)
-
         def func(cpu):
             self.assertEqual(type(cpu), Node)
             self.assertEqual(cpu.name, "cpu")
             self.assertEqual(cpu.address, cpu.get_field("reg"))
             self.assertEqual(cpu.get_field("compatible"), "riscv")
 
-        tree.match("riscv", func)
+        self.tree.match("riscv", func)
 
     def test_chosen(self):
-        tree = parseTree(self.source)
-
-        self.assertEqual(type(tree), Devicetree)
-
         def func(values):
             self.assertEqual(values[0], "/cpus/cpu@0")
 
-        tree.chosen("my-cpu", func)
+        self.tree.chosen("my-cpu", func)
 
-        cpu = tree.get_by_reference("&{/cpus/cpu@0}")
+        cpu = self.tree.get_by_reference("&{/cpus/cpu@0}")
         self.assertEqual(type(cpu), Node)
         self.assertEqual(cpu.get_path(), "/cpus/cpu@0")
         self.assertEqual(cpu.get_field("reg"), 0)
@@ -147,14 +125,12 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(node.get_field("compatible"), "sifive,uart0")
 
     def test_add_child(self):
-        tree = parseTree(self.source)
-
         new_node = Node.from_dts("uart0: uart@10013000 { compatible = \"sifive,uart0\"; };")
 
-        soc = tree.get_by_path("/soc")
+        soc = self.tree.get_by_path("/soc")
         soc.add_child(new_node)
 
-        uart = tree.get_by_path("/soc/uart@10013000")
+        uart = self.tree.get_by_path("/soc/uart@10013000")
         self.assertEqual(type(uart), Node)
         self.assertEqual(uart.label, "uart0")
         self.assertEqual(uart.name, "uart")
