@@ -12,12 +12,12 @@ class TestDevicetree(unittest.TestCase):
         self.source = """
         /dts-v1/;
         /* ignore this comment */
-        chosen {
-            my-cpu = "/cpus/cpu@0";
-        };
         / {
             #address-cells = <2>; // ignore this comment
             #size-cells = <2>;
+            chosen {
+                my-cpu = "/cpus/cpu@0";
+            };
             cpus {
                 cpu0: cpu@0 {
                     #address-cells = <1>;
@@ -88,7 +88,7 @@ class TestDevicetree(unittest.TestCase):
 
         self.assertEqual(type(tree), Devicetree)
 
-        cpu = tree.children[1].children[0].children[0]
+        cpu = tree.match("riscv")[0]
 
         self.assertEqual(type(cpu), Node)
         self.assertEqual(cpu.name, "cpu")

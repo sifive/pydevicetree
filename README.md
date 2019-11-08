@@ -11,14 +11,13 @@ Let's say you have a file design.dts with the contents
 ```
 /dts-v1/;
 
-chosen {
-	stdout-path = "/soc/uart@10000000:115200";
-};
-
 / {
 	#address-cells = <1>;
 	#size-cells = <1>;
 	compatible = "my,design";
+	chosen {
+		stdout-path = "/soc/uart@10000000:115200";
+	};
 	cpus {
 		cpu@0 {
 			#size-cells = <0>;
