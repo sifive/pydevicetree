@@ -103,6 +103,20 @@ class Node:
     def __hash__(self):
         return hash((self.name, self.address))
 
+    @staticmethod
+    def from_dts(source: str) -> 'Node':
+        """Create a node from Devicetree Source"""
+        # pylint: disable=import-outside-toplevel,cyclic-import
+        from pydevicetree.source import parseNode
+        return parseNode(source)
+
+    def add_child(self, node: 'Node', merge: bool = True):
+        """Add a child node and merge it into the tree"""
+        node.parent = self
+        self.children.append(node)
+        if merge:
+            self.merge_tree()
+
     def to_dts(self, level: int = 0) -> str:
         """Format the subtree starting at the node as Devicetree Source"""
         out = ""
@@ -195,7 +209,7 @@ class Node:
         """Get a child node by name or name and unit address"""
         if '@' in handle:
             name, addr_s = handle.split('@')
-            address = int(addr_s)
+            address = int(addr_s, base=16)
             nodes = list(filter(lambda n: n.name == name and n.address == address, self.children))
         else:
             name = handle

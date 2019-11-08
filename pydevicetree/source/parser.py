@@ -144,6 +144,10 @@ def parseTree(dts, pwd="", followIncludes=False):
     """Parses a string into a full Devicetree"""
     return Devicetree(parseElements(dts, pwd, followIncludes))
 
+def parseNode(dts):
+    """Parses a string into a Devictreee Node"""
+    return grammar.node_definition.parseString(dts)[0]
+
 if __name__ == "__main__":
     import sys
     if len(sys.argv) > 1:
