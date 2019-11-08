@@ -137,5 +137,30 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(cpu.get_path(), "/cpus/cpu@0")
         self.assertEqual(cpu.get_field("reg"), 0)
 
+    def test_node_from_dts(self):
+        node = Node.from_dts("uart0: uart@10013000 { compatible = \"sifive,uart0\"; };")
+
+        self.assertEqual(type(node), Node)
+        self.assertEqual(node.label, "uart0")
+        self.assertEqual(node.name, "uart")
+        self.assertEqual(node.address, 0x10013000)
+        self.assertEqual(node.get_field("compatible"), "sifive,uart0")
+
+    def test_add_child(self):
+        tree = parseTree(self.source)
+
+        new_node = Node.from_dts("uart0: uart@10013000 { compatible = \"sifive,uart0\"; };")
+
+        soc = tree.get_by_path("/soc")
+        soc.add_child(new_node)
+
+        uart = tree.get_by_path("/soc/uart@10013000")
+        self.assertEqual(type(uart), Node)
+        self.assertEqual(uart.label, "uart0")
+        self.assertEqual(uart.name, "uart")
+        self.assertEqual(uart.address, 0x10013000)
+        self.assertEqual(uart.get_field("compatible"), "sifive,uart0")
+        
+
 if __name__ == "__main__":
     unittest.main()
