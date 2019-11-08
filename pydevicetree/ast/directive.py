@@ -7,7 +7,24 @@ from typing import List, Any
 from pydevicetree.ast.helpers import formatLevel
 
 class Directive:
+    """Represents a Devicetree directive
+
+    Directives in Devicetree source are statements of the form
+
+        /directive-name/ [option1 [option2 [...]]];
+
+    Common directive examples include:
+
+        /dts-v1/;
+        /include/ "overlay.dtsi";
+        /delete-node/ &uart0;
+        /delete-property/ status;
+
+    Their semantic meaning depends on the directive name, their location in the Devicetree,
+    and their options.
+    """
     def __init__(self, directive: str, options: List[Any] = None):
+        """Create a directive object"""
         self.directive = directive
         self.options = options
 
@@ -18,6 +35,7 @@ class Directive:
         return self.to_dts()
 
     def to_dts(self, level: int = 0) -> str:
+        """Format the Directive in Devicetree Source format"""
         if self.options:
             return formatLevel(level, "%s %s;\n" % (self.directive, self.options))
         return formatLevel(level, "%s;\n" % self.directive)
