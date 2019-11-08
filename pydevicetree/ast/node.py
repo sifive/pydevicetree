@@ -195,7 +195,7 @@ class Node:
         """Get a child node by name or name and unit address"""
         if '@' in handle:
             name, addr_s = handle.split('@')
-            address = int(addr_s)
+            address = int(addr_s, base=16)
             nodes = list(filter(lambda n: n.name == name and n.address == address, self.children))
         else:
             name = handle
