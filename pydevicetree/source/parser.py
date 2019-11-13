@@ -134,7 +134,7 @@ def recurseIncludeFiles(elements, pwd):
 
 def parseElements(dts, pwd="", followIncludes=False):
     """Parses a string into a list of elements"""
-    elements = grammar.devicetree.parseString(dts)
+    elements = grammar.devicetree.parseString(dts, parseAll=True)
     parentNodes(elements)
     if followIncludes:
         recurseIncludeFiles(elements, pwd)
@@ -146,11 +146,11 @@ def parseTree(dts, pwd="", followIncludes=False):
 
 def parseNode(dts):
     """Parses a string into a Devictreee Node"""
-    return grammar.node_definition.parseString(dts)[0]
+    return grammar.node_definition.parseString(dts, parseAll=True)[0]
 
 def parseProperty(dts):
     """Parses a string into a Devicetree Property"""
-    return grammar.property_assignment.parseString(dts)[0]
+    return grammar.property_assignment.parseString(dts, parseAll=True)[0]
 
 if __name__ == "__main__":
     import sys
