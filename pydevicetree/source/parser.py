@@ -13,8 +13,8 @@ def transformNode(string, location, tokens):
     directives = [e for e in tokens.asList() if isinstance(e, Directive)]
     children = [e for e in tokens.asList() if isinstance(e, Node)]
 
-    if tokens.node_reference:
-        return NodeReference(tokens.node_reference[0], properties=properties,
+    if isinstance(tokens[0], Reference):
+        return NodeReference(tokens[0], properties=properties,
                              directives=directives, children=children)
     return Node(tokens.node_name, tokens.label, tokens.address, properties=properties,
                 directives=directives, children=children)
@@ -69,6 +69,35 @@ def transformCellArray(string, location, tokens):
     """Transforms a ParseResult into a CellArray"""
     return CellArray(tokens.asList())
 
+def transformLabel(string, location, tokens):
+    """Transforms a ParseResult into a Label"""
+    return Label(tokens.label)
+
+def transformPath(string, location, tokens):
+    """Transforms a ParseResult into a Path"""
+    if tokens.address:
+        return Path(tokens.path, tokens.address)
+    return Path(tokens.path)
+
+def transformPathReference(string, location, tokens):
+    """Transforms a ParseResult into a PathReference"""
+    return PathReference(tokens[0])
+
+def transformLabelReference(string, location, tokens):
+    """Transforms a ParseResult into a LabelReference"""
+    return LabelReference(tokens[0])
+
+def transformReference(string, location, tokens):
+    """Transforms a ParseResult into a Reference"""
+    if isinstance(tokens[0], Reference):
+        return tokens[0]
+    return None
+
+grammar.label.setParseAction(transformLabel)
+grammar.node_path.setParseAction(transformPath)
+grammar.path_reference.setParseAction(transformPathReference)
+grammar.label_reference.setParseAction(transformLabelReference)
+grammar.reference.setParseAction(transformReference)
 grammar.node_definition.setParseAction(transformNode)
 grammar.property_assignment.setParseAction(transformPropertyAssignment)
 grammar.directive.setParseAction(transformDirective)

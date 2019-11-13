@@ -5,3 +5,4 @@
 from pydevicetree.ast.property import PropertyValues, Bytestring, CellArray, StringList, Property
 from pydevicetree.ast.directive import Directive
 from pydevicetree.ast.node import Node, NodeReference, Devicetree
+from pydevicetree.ast.reference import Label, Path, Reference, LabelReference, PathReference

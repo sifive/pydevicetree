@@ -14,10 +14,12 @@ label = p.Word(p.alphanums + "_").setResultsName("label")
 label_creation = p.Combine(label + p.Literal(":"))
 string = p.QuotedString(quoteChar='"')
 stringlist = p.delimitedList(string)
-node_path = p.Combine(p.Literal("/") + p.delimitedList(node_name, delim="/") + \
-        p.Optional(p.Literal("@") + unit_address))
-reference = p.Combine(p.Literal("&") + \
-        ((p.Literal("{") + node_path("path") + p.Literal("}")) ^ label))
+node_path = p.Combine(p.Literal("/") + \
+        p.delimitedList(node_name, delim="/", combine=True)).setResultsName("path") + \
+        p.Optional(p.Literal("@").suppress() + unit_address("address"))
+path_reference = p.Literal("&{").suppress() + node_path + p.Literal("}").suppress()
+label_reference = p.Literal("&").suppress() + label
+reference = path_reference ^ label_reference
 directive = p.QuotedString(quoteChar="/", unquoteResults=False).setResultsName("directive") + \
         p.Optional(string ^ property_name ^ node_name ^ reference ^ \
                 (integer * 2)).setResultsName("option") + p.Literal(";").suppress()
@@ -41,7 +43,7 @@ property_assignment = property_name("property_name") + p.Optional(p.Literal("=")
 
 node_opener = p.Optional(label_creation) + node_name("node_name") + \
         p.Optional(p.Literal("@").suppress() + unit_address("address")) + p.Literal("{").suppress()
-node_reference_opener = reference("node_reference") + p.Literal("{").suppress()
+node_reference_opener = reference + p.Literal("{").suppress()
 node_closer = p.Literal("}").suppress() + p.Literal(";").suppress()
 node_definition = p.Forward()
 # pylint: disable=expression-not-assigned
