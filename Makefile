@@ -39,6 +39,7 @@ test: test-lint
 
 UNIT_TESTS = tests/test_devicetree.py \
 	     tests/test_grammar.py \
+	     tests/test_exceptions.py \
 	     tests/test_overlay.py
 
 .PHONY: test-unit
