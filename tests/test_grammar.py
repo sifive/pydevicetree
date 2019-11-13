@@ -7,6 +7,19 @@ import unittest
 from pydevicetree.source.grammar import *
 
 class TestGrammar(unittest.TestCase):
+    def test_label(self):
+        from pydevicetree.ast import Label
+        self.assertEqual(label.parseString("mylabel:")[0], Label("mylabel"))
+
+    def test_node_path(self):
+        from pydevicetree.ast import Path
+        self.assertEqual(node_path.parseString("/path/to/foo@deadbeef")[0], Path("/path/to/foo@deadbeef"))
+
+    def test_reference(self):
+        from pydevicetree.ast import Label, Path
+        self.assertEqual(reference.parseString("&mylabel")[0].label, Label("mylabel"))
+        self.assertEqual(reference.parseString("&{/path/to/foo@deadbeef}")[0].path, Path("/path/to/foo@deadbeef"))
+
     def test_arith_expr(self):
         self.assertEqual(arith_expr.parseString("(1 + 2)").asList(), [3])
         self.assertEqual(arith_expr.parseString("(1 + 0xa)").asList(), [11])

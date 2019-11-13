@@ -4,6 +4,8 @@
 
 from typing import List, Any
 
+from pydevicetree.ast.reference import Reference
+
 def formatLevel(level: int, s: str) -> str:
     """Helper to indent a string with a number of tabs"""
     return "\t" * level + s
@@ -12,11 +14,10 @@ def wrapStrings(values: List[Any], formatHex: bool = False) -> List[Any]:
     """Helper to wrap strings in quotes where appropriate"""
     wrapped = []
     for v in values:
-        if isinstance(v, str):
-            if v[0] != '&':
-                wrapped.append("\"%s\"" % v)
-            else:
-                wrapped.append(v)
+        if isinstance(v, Reference):
+            wrapped.append(v.to_dts())
+        elif isinstance(v, str):
+            wrapped.append("\"%s\"" % v)
         elif isinstance(v, int):
             if formatHex:
                 wrapped.append("0x%x" % v)

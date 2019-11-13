@@ -9,6 +9,7 @@ from typing import List, Union, Optional, Iterable, Callable, Any, cast, Pattern
 from pydevicetree.ast.helpers import formatLevel
 from pydevicetree.ast.property import Property, PropertyValues
 from pydevicetree.ast.directive import Directive
+from pydevicetree.ast.reference import Label, Path, Reference, LabelReference, PathReference
 
 # Type signature for elements passed to Devicetree constructor
 ElementList = Iterable[Union['Node', Property, Directive]]
@@ -187,18 +188,16 @@ class Node:
             return self.parent.get_path() + "/" + self.name + "@" + ("%x" % self.address)
         return self.parent.get_path() + "/" + self.name
 
-    def get_by_reference(self, reference: str) -> Optional['Node']:
+    def get_by_reference(self, reference: Reference) -> Optional['Node']:
         """Get a node from the subtree by reference (ex. &label, &{/path/to/node})"""
-        match_path = re.match(r"&{(?P<path>[/\w\d,\._\+-@]*)}", reference, re.ASCII)
-        match_label = re.match(r"&(?P<label>[\d\w_]*)", reference, re.ASCII)
+        if isinstance(reference, LabelReference):
+            return self.get_by_label(reference.label)
+        if isinstance(reference, PathReference):
+            return self.get_by_path(reference.path)
 
-        if match_path:
-            return self.get_by_path(match_path.group("path"))
-        if match_label:
-            return self.get_by_label(match_label.group("label"))
         return None
 
-    def get_by_label(self, label: str) -> Optional['Node']:
+    def get_by_label(self, label: Union[Label, str]) -> Optional['Node']:
         """Get a node from the subtree by label"""
         matching_nodes = list(filter(lambda n: n.label == label, self.child_nodes()))
         if len(matching_nodes) != 0:
@@ -221,17 +220,11 @@ class Node:
             raise Exception("Handle %s is ambiguous!" % handle)
         return nodes[0]
 
-    def get_by_path(self, path: str) -> Optional['Node']:
+    def get_by_path(self, path: Union[Path, List[str]]) -> Optional['Node']:
         """Get a node in the subtree by path"""
-        node_handles = list(filter(lambda s: s != '', path.split("/")))
-
-        if not node_handles:
-            return self
-
-        node = self.__get_child_by_handle(node_handles[0])
-
-        if node:
-            return node.get_by_path('/'.join(node_handles[1:]))
+        matching_nodes = list(filter(lambda n: n.get_path() == path, self.child_nodes()))
+        if len(matching_nodes) != 0:
+            return matching_nodes[0]
         return None
 
     def match(self, compatible: Pattern, func: MatchCallback = None) -> List['Node']:
@@ -307,7 +300,7 @@ class NodeReference(Node):
     NodeReferences are commonly used by Devicetree "overlays" to extend the properties of a node
     or add child devices, such as to a bus like I2C.
     """
-    def __init__(self, reference: str, properties: List[Property] = None,
+    def __init__(self, reference: Reference, properties: List[Property] = None,
                  directives: List[Directive] = None, children: List[Node] = None):
         """Instantiate a Node identified by reference to another node"""
         self.reference = reference
@@ -315,13 +308,13 @@ class NodeReference(Node):
                       children=children)
 
     def __repr__(self) -> str:
-        return "<NodeReference %s>" % self.reference
+        return "<NodeReference %s>" % self.reference.to_dts()
 
     def resolve_reference(self, tree: 'Devicetree') -> Node:
         """Given the full tree, get the node being referenced"""
         node = tree.get_by_reference(self.reference)
         if node is None:
-            raise Exception("Node reference %s cannot be resolved" % self.reference)
+            raise Exception("Node reference %s cannot be resolved" % self.reference.to_dts())
         return cast(Node, node)
 
 class Devicetree(Node):
