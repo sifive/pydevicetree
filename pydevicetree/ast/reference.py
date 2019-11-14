@@ -51,6 +51,8 @@ class Path:
         if isinstance(other, Path):
             return self.to_dts() == other.to_dts()
         if isinstance(other, str):
+            if ("@" not in other) and (self.address is not None):
+                return self.to_dts().split("@")[0] == other
             return self.to_dts() == other
         return False
 

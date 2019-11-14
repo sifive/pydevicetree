@@ -30,6 +30,10 @@ class TestDevicetree(unittest.TestCase):
                     reg = <1>;
                 };
             };
+            memory@80000000 {
+                reg = <0x80000000 0x1000>;
+                reg-names = "mem";
+            };
             soc {
                 delete-property {
                     delete-me = "foo";
@@ -59,6 +63,10 @@ class TestDevicetree(unittest.TestCase):
         cpus = self.tree.get_by_path("/cpus")
         self.assertEqual(cpus.name, "cpus")
         self.assertEqual(len(cpus.children), 2)
+
+        # get node by path without address when unambiguous
+        memory = self.tree.get_by_path("/memory")
+        self.assertEqual(type(memory), Node)
 
     def test_delete_directive(self):
         soc = self.tree.get_by_path("/soc")

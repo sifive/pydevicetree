@@ -174,13 +174,13 @@ class Node:
         self.directives += other.directives
         self.children += other.children
 
-    def get_path(self) -> str:
+    def get_path(self, includeAddress: bool = True) -> str:
         """Get the path of a node (ex. /cpus/cpu@0)"""
         if self.name == "/":
             return ""
         if self.parent is None:
             return "/" + self.name
-        if isinstance(self.address, int):
+        if isinstance(self.address, int) and includeAddress:
             return self.parent.get_path() + "/" + self.name + "@" + ("%x" % self.address)
         return self.parent.get_path() + "/" + self.name
 
@@ -218,7 +218,13 @@ class Node:
 
     def get_by_path(self, path: Union[Path, str]) -> Optional['Node']:
         """Get a node in the subtree by path"""
-        matching_nodes = list(filter(lambda n: n.get_path() == path, self.child_nodes()))
+        matching_nodes = list(filter(lambda n: path == n.get_path(includeAddress=True), \
+                                     self.child_nodes()))
+        if len(matching_nodes) != 0:
+            return matching_nodes[0]
+
+        matching_nodes = list(filter(lambda n: path == n.get_path(includeAddress=False), \
+                                     self.child_nodes()))
         if len(matching_nodes) != 0:
             return matching_nodes[0]
         return None
