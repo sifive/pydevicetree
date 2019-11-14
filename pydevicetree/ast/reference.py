@@ -2,6 +2,8 @@
 # Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+import re
+
 from typing import Union, Iterator, Optional
 
 class Label:
@@ -74,6 +76,23 @@ class Reference:
 
     This is the parent class for both types of references, LabelReference and PathReference
     """
+    @staticmethod
+    def from_dts(dts: str) -> 'Reference':
+        """Create a reference from Devicetree Source"""
+        label_re = re.compile(r"^&([0-9a-zA-Z_\-]+)$")
+        path_re = re.compile(r"^&{([/0-9a-zA-Z,._+\-@]+)}$")
+
+        label_match = label_re.match(dts)
+        path_match = path_re.match(dts)
+
+        if label_match:
+            return LabelReference(label_match.group(1))
+        if path_match:
+            return PathReference(path_match.group(1))
+
+        raise Exception("Unable to parse %s into Reference instance" % dts)
+
+
     # pylint: disable=no-self-use
     def to_dts(self) -> str:
         """Format the Reference in Devicetree Source format"""
