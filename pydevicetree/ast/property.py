@@ -2,7 +2,7 @@
 # Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Any
+from typing import List, Any, cast
 
 from pydevicetree.ast.helpers import wrapStrings, formatLevel
 
@@ -15,7 +15,7 @@ class PropertyValues:
         CellArray
         StringList
     """
-    def __init__(self, values: List[Any] = None):
+    def __init__(self, values: List[Any]):
         """Create a PropertyValue"""
         self.values = values
 
@@ -51,9 +51,9 @@ class Bytestring(PropertyValues):
 
         [de ad be eef]
     """
-    def __init__(self, bytelist: List[int] = None):
+    def __init__(self, bytelist: List[int]):
         """Create a Bytestring object"""
-        PropertyValues.__init__(self, bytearray(bytelist))
+        PropertyValues.__init__(self, cast(List[Any], bytearray(bytelist)))
 
     def __repr__(self) -> str:
         return "<Bytestring " + str(self.values) + ">"
@@ -70,7 +70,7 @@ class CellArray(PropertyValues):
     property encodes a CellArray as a list of tuples (base address, size), while the `interrupts`
     property encodes a CellArray as simply a list of interrupt line numbers.
     """
-    def __init__(self, cells: List[Any] = None):
+    def __init__(self, cells: List[Any]):
         """Create a CellArray object"""
         PropertyValues.__init__(self, cells)
 
@@ -86,7 +86,7 @@ class StringList(PropertyValues):
 
     The most common use of a StringList in Devicetree is to describe the `compatible` property.
     """
-    def __init__(self, strings: List[str] = None):
+    def __init__(self, strings: List[str]):
         """Create a StringList object"""
         PropertyValues.__init__(self, strings)
 

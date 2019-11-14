@@ -2,7 +2,7 @@
 # Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Any
+from typing import Any
 
 from pydevicetree.ast.helpers import formatLevel
 
@@ -23,10 +23,10 @@ class Directive:
     Their semantic meaning depends on the directive name, their location in the Devicetree,
     and their options.
     """
-    def __init__(self, directive: str, options: List[Any] = None):
+    def __init__(self, directive: str, option: Any = None):
         """Create a directive object"""
         self.directive = directive
-        self.options = options
+        self.option = option
 
     def __repr__(self) -> str:
         return "<Directive %s>" % self.directive
@@ -36,6 +36,6 @@ class Directive:
 
     def to_dts(self, level: int = 0) -> str:
         """Format the Directive in Devicetree Source format"""
-        if self.options:
-            return formatLevel(level, "%s %s;\n" % (self.directive, self.options))
+        if self.option:
+            return formatLevel(level, "%s %s;\n" % (self.directive, self.option))
         return formatLevel(level, "%s;\n" % self.directive)
