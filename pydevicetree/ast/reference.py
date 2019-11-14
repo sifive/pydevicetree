@@ -20,7 +20,7 @@ class Label:
     def __repr__(self) -> str:
         return "<Label " + self.name + ">"
 
-    def __eq__(self, other: Union['Label', str]) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, Label):
             return self.name == other.name
         if isinstance(other, str):
@@ -47,10 +47,12 @@ class Path:
     def __repr__(self) -> str:
         return "<Path " + self.to_dts() + ">"
 
-    def __eq__(self, other: Union['Path', str]) -> bool:
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, Path):
             return self.to_dts() == other.to_dts()
         if isinstance(other, str):
+            if ("@" not in other) and (self.address is not None):
+                return self.to_dts().split("@")[0] == other
             return self.to_dts() == other
         return False
 
@@ -72,6 +74,10 @@ class Reference:
 
     This is the parent class for both types of references, LabelReference and PathReference
     """
+    # pylint: disable=no-self-use
+    def to_dts(self) -> str:
+        """Format the Reference in Devicetree Source format"""
+        return ""
 
 class LabelReference(Reference):
     """A LabelReference is a reference to a Node by label"""

@@ -77,7 +77,7 @@ class TestGrammar(unittest.TestCase):
 
         self.assertEqual(type(dtsv1), Directive)
         self.assertEqual(dtsv1.directive, "/dts-v1/")
-        self.assertEqual(dtsv1.options, '')
+        self.assertEqual(dtsv1.option, None)
 
 if __name__ == "__main__":
     unittest.main()

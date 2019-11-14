@@ -33,7 +33,9 @@ def transformPropertyAssignment(string, location, tokens):
 
 def transformDirective(string, location, tokens):
     """Transforms a ParseResult into a Directive"""
-    return Directive(tokens.directive, tokens.option)
+    if len(tokens.asList()) > 1:
+        return Directive(tokens[0], tokens[1])
+    return Directive(tokens[0])
 
 def evaluateArithExpr(string, location, tokens):
     """Evaluates a ParseResult as a python expression"""
@@ -153,10 +155,10 @@ def recurseIncludeFiles(elements, pwd):
         if isinstance(e, Directive):
             if e.directive == "/include/":
                 # Prefix with current directory if path is not absolute
-                if e.options[0] != '/':
-                    e.options = pwd + e.options
+                if e.option[0] != '/':
+                    e.option = pwd + e.option
 
-                with open(e.options, 'r') as f:
+                with open(e.option, 'r') as f:
                     contents = f.read()
 
                 elements += parseElements(contents)

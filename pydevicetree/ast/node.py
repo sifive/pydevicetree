@@ -55,16 +55,16 @@ class Node:
         - By name: uart@10013000 (for example when referenced in a /delete-node/ directive)
     """
     # pylint: disable=too-many-arguments
-    def __init__(self, name: str, label: Optional[str] = None, address: Optional[int] = None,
-                 properties: List[Property] = None, directives: List[Directive] = None,
-                 children: List['Node'] = None):
+    def __init__(self, name: str, label: Optional[str], address: Optional[int],
+                 properties: List[Property], directives: List[Directive],
+                 children: List['Node']):
         """Initializes a Devicetree Node
 
         Also evaluates the /delete-node/ and /delete-property/ directives found in the node
         and deletes the respective nodes and properties.
         """
         self.name = name
-        self.parent = None # isinstance: Optional['Node']
+        self.parent = None # type: Optional['Node']
 
         self.label = label
         self.address = address
@@ -73,20 +73,16 @@ class Node:
         self.children = children
 
         for d in self.directives:
-            name = d.directive
-            if name == "/delete-node/":
-                option = d.options
-                node = self.get_by_reference(option)
+            if d.directive == "/delete-node/":
+                if isinstance(d.option, LabelReference):
+                    node = self.get_by_reference(d.option)
+                elif isinstance(d.option, str):
+                    node = self.__get_child_by_handle(d.option)
                 if node:
-                    del self.children[self.children.index(node)]
-                else:
-                    node = self.__get_child_by_handle(option)
-                    if node:
-                        del self.children[self.children.index(node)]
-            elif name == "/delete-property/":
-                option = d.options
+                    self.remove_child(node)
+            elif d.directive == "/delete-property/":
                 # pylint: disable=cell-var-from-loop
-                properties = list(filter(lambda p: p.name == option, self.properties))
+                properties = list(filter(lambda p: p.name == d.option, self.properties))
                 if properties:
                     del self.properties[self.properties.index(properties[0])]
 
@@ -178,13 +174,13 @@ class Node:
         self.directives += other.directives
         self.children += other.children
 
-    def get_path(self) -> str:
+    def get_path(self, includeAddress: bool = True) -> str:
         """Get the path of a node (ex. /cpus/cpu@0)"""
         if self.name == "/":
             return ""
         if self.parent is None:
             return "/" + self.name
-        if isinstance(self.address, int):
+        if isinstance(self.address, int) and includeAddress:
             return self.parent.get_path() + "/" + self.name + "@" + ("%x" % self.address)
         return self.parent.get_path() + "/" + self.name
 
@@ -220,9 +216,15 @@ class Node:
             raise Exception("Handle %s is ambiguous!" % handle)
         return nodes[0]
 
-    def get_by_path(self, path: Union[Path, List[str]]) -> Optional['Node']:
+    def get_by_path(self, path: Union[Path, str]) -> Optional['Node']:
         """Get a node in the subtree by path"""
-        matching_nodes = list(filter(lambda n: n.get_path() == path, self.child_nodes()))
+        matching_nodes = list(filter(lambda n: path == n.get_path(includeAddress=True), \
+                                     self.child_nodes()))
+        if len(matching_nodes) != 0:
+            return matching_nodes[0]
+
+        matching_nodes = list(filter(lambda n: path == n.get_path(includeAddress=False), \
+                                     self.child_nodes()))
         if len(matching_nodes) != 0:
             return matching_nodes[0]
         return None
@@ -300,12 +302,12 @@ class NodeReference(Node):
     NodeReferences are commonly used by Devicetree "overlays" to extend the properties of a node
     or add child devices, such as to a bus like I2C.
     """
-    def __init__(self, reference: Reference, properties: List[Property] = None,
-                 directives: List[Directive] = None, children: List[Node] = None):
+    def __init__(self, reference: Reference, properties: List[Property],
+                 directives: List[Directive], children: List[Node]):
         """Instantiate a Node identified by reference to another node"""
         self.reference = reference
-        Node.__init__(self, name="", properties=properties, directives=directives,
-                      children=children)
+        Node.__init__(self, label=None, name="", address=None, properties=properties,
+                      directives=directives, children=children)
 
     def __repr__(self) -> str:
         return "<NodeReference %s>" % self.reference.to_dts()
@@ -325,7 +327,7 @@ class Devicetree(Node):
 
     Devicetree Source files can be parsed by calling Devicetree.parseFile().
     """
-    def __init__(self, elements: ElementList = None):
+    def __init__(self, elements: ElementList):
         """Instantiate a Devicetree with the list of parsed elements
 
         Resolves all reference nodes and merges the tree to combine all identical nodes.
@@ -342,17 +344,18 @@ class Devicetree(Node):
             elif isinstance(e, Directive):
                 directives.append(cast(Directive, e))
 
-        Node.__init__(self, name="",
+        Node.__init__(self, label=None, name="", address=None,
                       properties=properties, directives=directives, children=children)
 
         for node in self.children:
             node.parent = self
 
         reference_nodes = filter(lambda node: isinstance(node, NodeReference), self.all_nodes())
-        for refnode in reference_nodes:
+        for refnode in cast(List[NodeReference], reference_nodes):
             node = refnode.resolve_reference(self)
 
-            refnode.parent.remove_child(refnode)
+            if refnode.parent:
+                cast(Node, refnode.parent).remove_child(refnode)
 
             node.properties += refnode.properties
             node.directives += refnode.directives
@@ -377,7 +380,7 @@ class Devicetree(Node):
 
         return out
 
-    def get_by_path(self, path: str) -> Optional[Node]:
+    def get_by_path(self, path: Union[Path, str]) -> Optional[Node]:
         """Get a node in the tree by path (ex. /cpus/cpu@0)"""
         return self.root().get_by_path(path)
 
