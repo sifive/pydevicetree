@@ -14,6 +14,9 @@ class TestDevicetree(unittest.TestCase):
         / {
             #address-cells = <2>; // ignore this comment
             #size-cells = <2>;
+            aliases {
+                cpu-alias = "/cpus/cpu@1";
+            };
             chosen {
                 my-cpu = "/cpus/cpu@0";
             };
@@ -67,6 +70,15 @@ class TestDevicetree(unittest.TestCase):
         # get node by path without address when unambiguous
         memory = self.tree.get_by_path("/memory")
         self.assertEqual(type(memory), Node)
+
+        # aliases can be part of the path
+        cpu_alias = self.tree.get_by_path("cpu-alias")
+        self.assertEqual(type(cpu_alias), Node)
+        self.assertEqual(cpu_alias.get_field("reg"), 1)
+        # also test with a Path
+        cpu_alias = self.tree.get_by_path(Path("cpu-alias"))
+        self.assertEqual(type(cpu_alias), Node)
+        self.assertEqual(cpu_alias.get_field("reg"), 1)
 
     def test_delete_directive(self):
         soc = self.tree.get_by_path("/soc")
