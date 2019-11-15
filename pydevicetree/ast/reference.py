@@ -59,6 +59,12 @@ class Path:
     def __iter__(self) -> Iterator[str]:
         return iter(['/'] + self.path)
 
+    def replace(self, old: str, new: str) -> 'Path':
+        """Replace any elements of the path which match 'old' with a new element 'new'"""
+        path = [e.replace(old, new) for e in self.path]
+        return Path('/' + '/'.join(path), self.address)
+
+
 class Reference:
     """A Reference is a Devicetree construct which points to a Node in the tree
 

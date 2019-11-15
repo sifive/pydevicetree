@@ -382,6 +382,14 @@ class Devicetree(Node):
 
     def get_by_path(self, path: Union[Path, str]) -> Optional[Node]:
         """Get a node in the tree by path (ex. /cpus/cpu@0)"""
+
+        # Find and replace all aliases in the path
+        aliases = self.aliases()
+        if aliases:
+            for prop in aliases.properties:
+                if prop.name in path and len(prop.values) > 0:
+                    path = path.replace(prop.name, prop.values[0])
+
         return self.root().get_by_path(path)
 
     @staticmethod
@@ -412,6 +420,13 @@ class Devicetree(Node):
             if n.name == "/":
                 return n
         raise Exception("Devicetree has no root node!")
+
+    def aliases(self) -> Optional[Node]:
+        """Get the aliases node of the tree if it exists"""
+        for n in self.all_nodes():
+            if n.name == "aliases":
+                return n
+        return None
 
     def chosen(self, property_name: str, func: ChosenCallback = None) -> Optional[PropertyValues]:
         """Get the values associated with one of the properties in the chosen node"""
