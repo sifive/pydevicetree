@@ -115,6 +115,17 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(cpu1.address_cells(), 2)
         self.assertEqual(cpu1.size_cells(), 1)
 
+    def test_filter(self):
+        def matchFunc(n):
+            return n.get_field("reg") == 1
+        def cbFunc(n):
+            self.assertEqual(n.get_field("compatible"), "riscv");
+
+        filtered_nodes = self.tree.filter(matchFunc, cbFunc)
+
+        # only the cpu1 node fulfills the matchFunc check
+        self.assertEqual(len(filtered_nodes), 1)
+
     def test_match(self):
         def func(cpu):
             self.assertEqual(type(cpu), Node)
