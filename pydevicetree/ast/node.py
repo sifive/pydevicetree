@@ -15,6 +15,7 @@ from pydevicetree.ast.reference import Label, Path, Reference, LabelReference, P
 ElementList = Iterable[Union['Node', Property, Directive]]
 
 # Callback type signatures for Devicetree.match() and Devicetree.chosen()
+MatchFunc = Callable[['Node'], bool]
 MatchCallback = Optional[Callable[['Node'], None]]
 ChosenCallback = Optional[Callable[[PropertyValues], None]]
 
@@ -229,6 +230,22 @@ class Node:
             return matching_nodes[0]
         return None
 
+    def filter(self, matchFunc: MatchFunc, cbFunc: MatchCallback = None) -> List['Node']:
+        """Filter all child nodes by matchFunc
+
+        If cbFunc is provided, this method will iterate over the Nodes selected by matchFunc
+        and call cbFunc on each Node
+
+        Returns a list of all matching Nodes
+        """
+        nodes = list(filter(matchFunc, self.child_nodes()))
+
+        if cbFunc is not None:
+            for n in nodes:
+                cbFunc(n)
+
+        return nodes
+
     def match(self, compatible: Pattern, func: MatchCallback = None) -> List['Node']:
         """Get a node from the subtree by compatible string
 
@@ -242,13 +259,7 @@ class Node:
                 return any(regex.match(c) for c in compatibles)
             return False
 
-        nodes = list(filter(match_compat, self.child_nodes()))
-
-        if func is not None:
-            for n in nodes:
-                func(n)
-
-        return nodes
+        return self.filter(match_compat, func)
 
     def child_nodes(self) -> Iterable['Node']:
         """Get an iterable over all the nodes in the subtree"""
