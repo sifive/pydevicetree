@@ -2,7 +2,8 @@
 # Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import List, Any, cast
+from typing import List, Any, cast, Tuple, Optional, Iterable
+from itertools import zip_longest
 
 from pydevicetree.ast.helpers import wrapStrings, formatLevel
 
@@ -80,6 +81,106 @@ class CellArray(PropertyValues):
     def to_dts(self, formatHex: bool = False) -> str:
         """Format the cell array in Devicetree Source format"""
         return "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
+
+class RegArray(CellArray):
+    """A RegArray is the CellArray assigned to the reg property"""
+    def __init__(self, cells: List[int],
+                 address_cells: int, size_cells: int,
+                 names: Optional[List[str]] = None):
+        """Create a RegArray from a list of ints"""
+        # pylint: disable=too-many-locals
+        CellArray.__init__(self, cells)
+        self.address_cells = address_cells
+        self.size_cells = size_cells
+
+        self.tuples = [] # type: List[Tuple[int, int, Optional[str]]]
+
+        group_size = self.address_cells + self.size_cells
+
+        if len(cells) % group_size != 0:
+            raise Exception("CellArray does not not contain enough cells")
+
+        grouped_cells = [cells[i:i+group_size] for i in range(0, len(cells), group_size)]
+
+        if not names:
+            names = []
+
+        for group, name in zip_longest(grouped_cells, cast(Iterable[Any], names)):
+            address = 0
+            a_cells = list(reversed(group[:self.address_cells]))
+            for a, i in zip(a_cells, range(len(a_cells))):
+                address += (1 << (32 * i)) * a
+
+            size = 0
+            s_cells = list(reversed(group[self.address_cells:]))
+            for s, i in zip(s_cells, range(len(s_cells))):
+                size += (1 << (32 * i)) * s
+
+            self.tuples.append(cast(Tuple[int, int, Optional[str]], tuple([address, size, name])))
+
+    def get_by_name(self, name: str) -> List[Tuple[int, int]]:
+        """Returns the (address, size) tuple(s) with a given name"""
+        tups = [] # type: List[Tuple[int, int]]
+        for t in list(filter(lambda t: t[2] == name, self.tuples)):
+            tups.append((t[0], t[1]))
+        return tups
+
+    def __repr__(self) -> str:
+        return "<RegArray " + self.values.__repr__() + ">"
+
+    def __iter__(self):
+        return iter(self.tuples)
+
+    def __len__(self) -> int:
+        return len(self.tuples)
+
+    def __getitem__(self, key) -> Any:
+        return self.tuples[key]
+
+class RangeArray(CellArray):
+    """A RangeArray is the CellArray assigned to the range property"""
+    def __init__(self, cells: List[int],
+                 address_cells: int, size_cells: int):
+        """Create a RangeArray from a list of ints"""
+        # pylint: disable=too-many-locals
+        CellArray.__init__(self, cells)
+        self.address_cells = address_cells
+        self.size_cells = size_cells
+
+        self.tuples = [] # type: List[Tuple[int, int, int]]
+
+        group_size = 2 * self.address_cells + self.size_cells
+
+        if len(cells) % group_size != 0:
+            raise Exception("CellArray does not not contain enough cells")
+
+        grouped_cells = [cells[i:i+group_size] for i in range(0, len(cells), group_size)]
+
+        def sum_cells(cells: List[int]):
+            value = 0
+            for cell, index in zip(list(reversed(cells)), range(len(cells))):
+                value += (1 << (32 * index)) * cell
+            return value
+
+        for group in grouped_cells:
+            parent_address = sum_cells(group[:self.address_cells])
+            child_address = sum_cells(group[self.address_cells:2*self.address_cells])
+            size = sum_cells(group[2*self.address_cells:])
+
+            self.tuples.append(cast(Tuple[int, int, int],
+                                    tuple([parent_address, child_address, size])))
+
+    def __repr__(self) -> str:
+        return "<RangeArray " + self.values.__repr__() + ">"
+
+    def __iter__(self):
+        return iter(self.tuples)
+
+    def __len__(self) -> int:
+        return len(self.tuples)
+
+    def __getitem__(self, key) -> Any:
+        return self.tuples[key]
 
 class StringList(PropertyValues):
     """A StringList is a list of null-terminated strings

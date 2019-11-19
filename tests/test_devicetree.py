@@ -174,7 +174,34 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(uart.name, "uart")
         self.assertEqual(uart.address, 0x10013000)
         self.assertEqual(uart.get_field("compatible"), "sifive,uart0")
-        
+
+    def test_reg_array(self):
+        spi_node = Node.from_dts("""spi@110013000 {
+            reg = <0x1 0x10013000 0x1000 0x0 0x20000000 0x10000000>;
+            reg-names = "control", "mem";
+        };""")
+
+        spi_reg = spi_node.get_reg()
+
+        control_reg = spi_reg.get_by_name("control")[0]
+        self.assertEqual(control_reg[0], 0x110013000)
+        self.assertEqual(control_reg[1], 0x1000)
+        mem_reg = spi_reg.get_by_name("mem")[0]
+        self.assertEqual(mem_reg[0], 0x20000000)
+        self.assertEqual(mem_reg[1], 0x10000000)
+
+    def test_ranges(self):
+        mem_node = Node.from_dts("""memory@180000000 {
+            device-type = "memory";
+            ranges = <0x1 0x80000000 0x1 0x80000000 0x80000000>;
+        };""")
+
+        mem_ranges = mem_node.get_ranges()
+
+        first_range = mem_ranges[0]
+        self.assertEqual(first_range[0], 0x180000000)
+        self.assertEqual(first_range[1], 0x180000000)
+        self.assertEqual(first_range[2], 0x80000000)
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,7 +7,7 @@ import os
 from typing import List, Union, Optional, Iterable, Callable, Any, cast, Pattern
 
 from pydevicetree.ast.helpers import formatLevel
-from pydevicetree.ast.property import Property, PropertyValues
+from pydevicetree.ast.property import Property, PropertyValues, RegArray, RangeArray
 from pydevicetree.ast.directive import Directive
 from pydevicetree.ast.reference import Label, Path, Reference, LabelReference, PathReference
 
@@ -285,6 +285,24 @@ class Node:
         if fields is not None:
             if len(cast(PropertyValues, fields)) != 0:
                 return fields[0]
+        return None
+
+    def get_reg(self) -> Optional[RegArray]:
+        """If the node defines a `reg` property, return a RegArray for easier querying"""
+        reg = self.get_fields("reg")
+        reg_names = self.get_fields("reg-names")
+        if reg is not None:
+            if reg_names is not None:
+                return RegArray(reg.values, self.address_cells(), self.size_cells(),
+                                reg_names.values)
+            return RegArray(reg.values, self.address_cells(), self.size_cells())
+        return None
+
+    def get_ranges(self) -> Optional[RangeArray]:
+        """If the node defines a `ranges` property, return a RangeArray for easier querying"""
+        ranges = self.get_fields("ranges")
+        if ranges is not None:
+            return RangeArray(ranges.values, self.address_cells(), self.size_cells())
         return None
 
     def address_cells(self):
