@@ -12,8 +12,8 @@ class TestDevicetree(unittest.TestCase):
         /dts-v1/;
         /* ignore this comment */
         / {
-            #address-cells = <2>; // ignore this comment
-            #size-cells = <2>;
+            #address-cells = <1>; // ignore this comment
+            #size-cells = <1>;
             aliases {
                 cpu-alias = "/cpus/cpu@1";
             };
@@ -21,13 +21,13 @@ class TestDevicetree(unittest.TestCase):
                 my-cpu = "/cpus/cpu@0";
             };
             cpus {
+                #address-cells = <1>;
+                #size-cells = <0>;
                 cpu0: cpu@0 {
-                    #address-cells = <1>;
                     compatible = "riscv";
                     reg = <0>;
                 };
                 cpu@1 {
-                    #size-cells = <1>;
                     /* ignore this comment */
                     compatible = "riscv";
                     reg = <1>;
@@ -111,9 +111,9 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(type(cpu1), Node)
 
         self.assertEqual(cpu0.address_cells(), 1)
-        self.assertEqual(cpu0.size_cells(), 2)
-        self.assertEqual(cpu1.address_cells(), 2)
-        self.assertEqual(cpu1.size_cells(), 1)
+        self.assertEqual(cpu0.size_cells(), 0)
+        self.assertEqual(cpu1.address_cells(), 1)
+        self.assertEqual(cpu1.size_cells(), 0)
 
     def test_filter(self):
         def matchFunc(n):
@@ -174,7 +174,34 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(uart.name, "uart")
         self.assertEqual(uart.address, 0x10013000)
         self.assertEqual(uart.get_field("compatible"), "sifive,uart0")
-        
+
+    def test_reg_array(self):
+        spi_node = Node.from_dts("""spi@110013000 {
+            reg = <0x1 0x10013000 0x1000 0x0 0x20000000 0x10000000>;
+            reg-names = "control", "mem";
+        };""")
+
+        spi_reg = spi_node.get_reg()
+
+        control_reg = spi_reg.get_by_name("control")[0]
+        self.assertEqual(control_reg[0], 0x110013000)
+        self.assertEqual(control_reg[1], 0x1000)
+        mem_reg = spi_reg.get_by_name("mem")[0]
+        self.assertEqual(mem_reg[0], 0x20000000)
+        self.assertEqual(mem_reg[1], 0x10000000)
+
+    def test_ranges(self):
+        mem_node = Node.from_dts("""memory@180000000 {
+            device-type = "memory";
+            ranges = <0x1 0x80000000 0x1 0x80000000 0x80000000>;
+        };""")
+
+        mem_ranges = mem_node.get_ranges()
+
+        first_range = mem_ranges[0]
+        self.assertEqual(first_range[0], 0x180000000)
+        self.assertEqual(first_range[1], 0x180000000)
+        self.assertEqual(first_range[2], 0x80000000)
 
 if __name__ == "__main__":
     unittest.main()

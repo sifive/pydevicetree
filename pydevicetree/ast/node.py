@@ -7,7 +7,7 @@ import os
 from typing import List, Union, Optional, Iterable, Callable, Any, cast, Pattern
 
 from pydevicetree.ast.helpers import formatLevel
-from pydevicetree.ast.property import Property, PropertyValues
+from pydevicetree.ast.property import Property, PropertyValues, RegArray, RangeArray
 from pydevicetree.ast.directive import Directive
 from pydevicetree.ast.reference import Label, Path, Reference, LabelReference, PathReference
 
@@ -287,25 +287,49 @@ class Node:
                 return fields[0]
         return None
 
+    def get_reg(self) -> Optional[RegArray]:
+        """If the node defines a `reg` property, return a RegArray for easier querying"""
+        reg = self.get_fields("reg")
+        reg_names = self.get_fields("reg-names")
+        if reg is not None:
+            if reg_names is not None:
+                return RegArray(reg.values, self.address_cells(), self.size_cells(),
+                                reg_names.values)
+            return RegArray(reg.values, self.address_cells(), self.size_cells())
+        return None
+
+    def get_ranges(self) -> Optional[RangeArray]:
+        """If the node defines a `ranges` property, return a RangeArray for easier querying"""
+        ranges = self.get_fields("ranges")
+        if ranges is not None:
+            return RangeArray(ranges.values, self.address_cells(), self.size_cells())
+        return None
+
     def address_cells(self):
-        """Get the number of address cells"""
-        cells = self.get_field("#address-cells")
-        if cells is not None:
-            return cells
+        """Get the number of address cells
+
+        The #address-cells property is defined by the parent of a node and describes how addresses
+        are encoded in cell arrays. If no property is defined, the default value is 2.
+        """
         if self.parent is not None:
-            return self.parent.address_cells()
-        # No address cells found
-        return 0
+            cells = self.parent.get_field("#address-cells")
+            if cells is not None:
+                return cells
+            return 2
+        return 2
 
     def size_cells(self):
-        """Get the number of size cells"""
-        cells = self.get_field("#size-cells")
-        if cells is not None:
-            return cells
+        """Get the number of size cells
+
+        The #size-cells property is defined by the parent of a node and describes how addresses
+        are encoded in cell arrays. If no property is defined, the default value is 1.
+        """
         if self.parent is not None:
-            return self.parent.size_cells()
-        # No size cells found
-        return 0
+            cells = self.parent.get_field("#size-cells")
+            if cells is not None:
+                return cells
+            return 1
+        return 1
 
 class NodeReference(Node):
     """A NodeReference is used to extend the definition of a previously-defined Node
