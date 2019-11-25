@@ -288,24 +288,30 @@ class Node:
         return None
 
     def address_cells(self):
-        """Get the number of address cells"""
-        cells = self.get_field("#address-cells")
-        if cells is not None:
-            return cells
+        """Get the number of address cells
+
+        The #address-cells property is defined by the parent of a node and describes how addresses
+        are encoded in cell arrays. If no property is defined, the default value is 2.
+        """
         if self.parent is not None:
-            return self.parent.address_cells()
-        # No address cells found
-        return 0
+            cells = self.parent.get_field("#address-cells")
+            if cells is not None:
+                return cells
+            return 2
+        return 2
 
     def size_cells(self):
-        """Get the number of size cells"""
-        cells = self.get_field("#size-cells")
-        if cells is not None:
-            return cells
+        """Get the number of size cells
+
+        The #size-cells property is defined by the parent of a node and describes how addresses
+        are encoded in cell arrays. If no property is defined, the default value is 1.
+        """
         if self.parent is not None:
-            return self.parent.size_cells()
-        # No size cells found
-        return 0
+            cells = self.parent.get_field("#size-cells")
+            if cells is not None:
+                return cells
+            return 1
+        return 1
 
 class NodeReference(Node):
     """A NodeReference is used to extend the definition of a previously-defined Node

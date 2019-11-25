@@ -12,8 +12,8 @@ class TestDevicetree(unittest.TestCase):
         /dts-v1/;
         /* ignore this comment */
         / {
-            #address-cells = <2>; // ignore this comment
-            #size-cells = <2>;
+            #address-cells = <1>; // ignore this comment
+            #size-cells = <1>;
             aliases {
                 cpu-alias = "/cpus/cpu@1";
             };
@@ -21,13 +21,13 @@ class TestDevicetree(unittest.TestCase):
                 my-cpu = "/cpus/cpu@0";
             };
             cpus {
+                #address-cells = <1>;
+                #size-cells = <0>;
                 cpu0: cpu@0 {
-                    #address-cells = <1>;
                     compatible = "riscv";
                     reg = <0>;
                 };
                 cpu@1 {
-                    #size-cells = <1>;
                     /* ignore this comment */
                     compatible = "riscv";
                     reg = <1>;
@@ -111,9 +111,9 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(type(cpu1), Node)
 
         self.assertEqual(cpu0.address_cells(), 1)
-        self.assertEqual(cpu0.size_cells(), 2)
-        self.assertEqual(cpu1.address_cells(), 2)
-        self.assertEqual(cpu1.size_cells(), 1)
+        self.assertEqual(cpu0.size_cells(), 0)
+        self.assertEqual(cpu1.address_cells(), 1)
+        self.assertEqual(cpu1.size_cells(), 0)
 
     def test_filter(self):
         def matchFunc(n):
