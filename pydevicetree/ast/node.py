@@ -354,6 +354,21 @@ class NodeReference(Node):
             raise Exception("Node reference %s cannot be resolved" % self.reference.to_dts())
         return cast(Node, node)
 
+    def to_dts(self, level: int = 0) -> str:
+        out = formatLevel(level, self.reference.to_dts() + " {\n")
+
+        for d in self.directives:
+            out += d.to_dts(level + 1)
+        for p in self.properties:
+            out += p.to_dts(level + 1)
+        for c in self.children:
+            out += c.to_dts(level + 1)
+
+        out += formatLevel(level, "};\n")
+
+        return out
+
+
 class Devicetree(Node):
     """A Devicetree object describes the full Devicetree tree
 
