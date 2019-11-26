@@ -81,16 +81,44 @@ Parsing the tree is as easy as 1, 2...
 [<Node cpu>]
 ```
 
+#### By path
+
+```
+>>> tree.get_by_path("/soc/dtim")
+<Node dtim@20000000>
+```
+
 #### Getting `Node` properties
+
+The value (or first value of a list/array) of a property can be retrieved with `Node.get_field()`
 
 ```
 >>> tree.match("sifive,rocket0")[0].get_field("timebase-frequency")
 1000000
+```
+
+The list or array of values assigned to a property can be retrieved with `Node.get_fields()`
+
+```
 >>> tree.match("sifive,rocket0")[0].get_fields("compatible")
 <StringList ['sifive,rocket0', 'riscv']>
 ```
 
+There are helper methods `Node.get_reg()` and `Node.get_ranges()` for the `reg` and `ranges`
+Devicetree properties.
+
+```
+>>> tree.get_by_path("/soc/dtim").get_reg()
+<RegArray [536870912, 268435456]>
+>>> tree.get_by_path("/soc/dtim").get_reg().get_by_name("mem")
+(536870912, 268435456)
+>>> "0x%x" % tree.get_by_path("/soc/dtim").get_reg().get_by_name("mem")[0]
+'0x20000000'
+```
+
 #### Getting `chosen` properties
+
+`Devicetree.chosen()` provides quick access to the properties of the `chosen` node
 
 ```
 >>> tree.chosen("stdout-path")
