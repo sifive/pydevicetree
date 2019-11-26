@@ -21,6 +21,9 @@ Let's say you have a file design.dts with the contents
 	#address-cells = <1>;
 	#size-cells = <1>;
 	compatible = "my,design";
+	aliases {
+		serial0 = "/soc/uart@10000000";
+	};
 	chosen {
 		stdout-path = "/soc/uart@10000000:115200";
 	};
@@ -86,6 +89,13 @@ Parsing the tree is as easy as 1, 2...
 ```
 >>> tree.get_by_path("/soc/dtim")
 <Node dtim@20000000>
+```
+
+Devicetree aliases are allowed in paths
+
+```
+>>> tree.get_by_path("serial0")
+<Node uart@10000000>
 ```
 
 #### Getting `Node` properties
