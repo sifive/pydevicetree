@@ -118,24 +118,24 @@ class RegArray(CellArray):
 
             self.tuples.append(cast(Tuple[int, int, Optional[str]], tuple([address, size, name])))
 
-    def get_by_name(self, name: str) -> List[Tuple[int, int]]:
-        """Returns the (address, size) tuple(s) with a given name"""
-        tups = [] # type: List[Tuple[int, int]]
-        for t in list(filter(lambda t: t[2] == name, self.tuples)):
-            tups.append((t[0], t[1]))
-        return tups
+    def get_by_name(self, name: str) -> Optional[Tuple[int, int]]:
+        """Returns the (address, size) tuple with a given name"""
+        for t in self.tuples:
+            if t[2] == name:
+                return cast(Tuple[int, int], tuple(t[:2]))
+        return None
 
     def __repr__(self) -> str:
         return "<RegArray " + self.values.__repr__() + ">"
 
-    def __iter__(self):
-        return iter(self.tuples)
+    def __iter__(self) -> Iterable[Tuple[int, int]]:
+        return cast(Iterable[Tuple[int, int]], map(lambda t: tuple(t[:2]), self.tuples))
 
     def __len__(self) -> int:
         return len(self.tuples)
 
-    def __getitem__(self, key) -> Any:
-        return self.tuples[key]
+    def __getitem__(self, key) -> Optional[Tuple[int, int]]:
+        return list(self.__iter__())[key]
 
 class RangeArray(CellArray):
     """A RangeArray is the CellArray assigned to the range property"""

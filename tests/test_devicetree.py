@@ -183,10 +183,10 @@ class TestDevicetree(unittest.TestCase):
 
         spi_reg = spi_node.get_reg()
 
-        control_reg = spi_reg.get_by_name("control")[0]
+        control_reg = spi_reg.get_by_name("control")
         self.assertEqual(control_reg[0], 0x110013000)
         self.assertEqual(control_reg[1], 0x1000)
-        mem_reg = spi_reg.get_by_name("mem")[0]
+        mem_reg = spi_reg.get_by_name("mem")
         self.assertEqual(mem_reg[0], 0x20000000)
         self.assertEqual(mem_reg[1], 0x10000000)
 
