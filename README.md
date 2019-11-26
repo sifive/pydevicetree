@@ -25,8 +25,9 @@ Let's say you have a file design.dts with the contents
 		stdout-path = "/soc/uart@10000000:115200";
 	};
 	cpus {
+		#address-cells = <1>;
+		#size-cells = <0>;
 		cpu@0 {
-			#size-cells = <0>;
 			compatible = "sifive,rocket0", "riscv";
 			device_type = "cpu";
 			reg = <0>;
