@@ -12,8 +12,8 @@ class TestDevicetree(unittest.TestCase):
         /dts-v1/;
         /* ignore this comment */
         / {
-            #address-cells = <1>; // ignore this comment
-            #size-cells = <1>;
+            #address-cells = <2>; // ignore this comment
+            #size-cells = <2>;
             aliases {
                 cpu-alias = "/cpus/cpu@1";
             };
@@ -33,9 +33,11 @@ class TestDevicetree(unittest.TestCase):
                     reg = <1>;
                 };
             };
-            memory@80000000 {
-                reg = <0x80000000 0x1000>;
-                reg-names = "mem";
+            memory@180000000 {
+                #address-cells = <2>;
+                #size-cells = <1>;
+                device-type = "memory";
+                ranges = <0x1 0x80000000 0x1 0x80000000 0x1000>;
             };
             soc {
                 delete-property {
@@ -191,17 +193,13 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(mem_reg[1], 0x10000000)
 
     def test_ranges(self):
-        mem_node = Node.from_dts("""memory@180000000 {
-            device-type = "memory";
-            ranges = <0x1 0x80000000 0x1 0x80000000 0x80000000>;
-        };""")
-
+        mem_node = self.tree.get_by_path("/memory")
         mem_ranges = mem_node.get_ranges()
 
         first_range = mem_ranges[0]
         self.assertEqual(first_range[0], 0x180000000)
         self.assertEqual(first_range[1], 0x180000000)
-        self.assertEqual(first_range[2], 0x80000000)
+        self.assertEqual(first_range[2], 0x1000)
 
 if __name__ == "__main__":
     unittest.main()
