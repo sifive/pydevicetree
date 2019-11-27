@@ -139,17 +139,18 @@ class RegArray(CellArray):
 
 class RangeArray(CellArray):
     """A RangeArray is the CellArray assigned to the range property"""
-    def __init__(self, cells: List[int],
-                 address_cells: int, size_cells: int):
+    def __init__(self, cells: List[int], child_address_cells: int,
+                 parent_address_cells: int, size_cells: int):
         """Create a RangeArray from a list of ints"""
         # pylint: disable=too-many-locals
         CellArray.__init__(self, cells)
-        self.address_cells = address_cells
+        self.child_address_cells = child_address_cells
+        self.parent_address_cells = parent_address_cells
         self.size_cells = size_cells
 
         self.tuples = [] # type: List[Tuple[int, int, int]]
 
-        group_size = 2 * self.address_cells + self.size_cells
+        group_size = self.child_address_cells + self.parent_address_cells + self.size_cells
 
         if len(cells) % group_size != 0:
             raise Exception("CellArray does not not contain enough cells")
@@ -163,12 +164,13 @@ class RangeArray(CellArray):
             return value
 
         for group in grouped_cells:
-            parent_address = sum_cells(group[:self.address_cells])
-            child_address = sum_cells(group[self.address_cells:2*self.address_cells])
-            size = sum_cells(group[2*self.address_cells:])
+            child_address = sum_cells(group[:self.child_address_cells])
+            parent_address = sum_cells(group[self.child_address_cells: \
+                                             self.child_address_cells + self.parent_address_cells])
+            size = sum_cells(group[self.child_address_cells + self.parent_address_cells:])
 
             self.tuples.append(cast(Tuple[int, int, int],
-                                    tuple([parent_address, child_address, size])))
+                                    tuple([child_address, parent_address, size])))
 
     def __repr__(self) -> str:
         return "<RangeArray " + self.values.__repr__() + ">"

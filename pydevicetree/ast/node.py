@@ -301,8 +301,11 @@ class Node:
     def get_ranges(self) -> Optional[RangeArray]:
         """If the node defines a `ranges` property, return a RangeArray for easier querying"""
         ranges = self.get_fields("ranges")
+        child_address_cells = self.get_field("#address-cells")
+        parent_address_cells = self.address_cells()
+        size_cells = self.get_field("#size-cells")
         if ranges is not None:
-            return RangeArray(ranges.values, self.address_cells(), self.size_cells())
+            return RangeArray(ranges.values, child_address_cells, parent_address_cells, size_cells)
         return None
 
     def address_cells(self):
