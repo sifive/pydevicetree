@@ -460,8 +460,10 @@ class Devicetree(Node):
         from pydevicetree.source import parseTree
         with open(filename, 'r') as f:
             contents = f.read()
-        pwd = os.path.dirname(filename) + "/"
-        return parseTree(contents, pwd, followIncludes)
+        dirname = os.path.dirname(filename)
+        if dirname != "":
+            dirname += "/"
+        return parseTree(contents, dirname, followIncludes)
 
     def all_nodes(self) -> Iterable[Node]:
         """Get an iterable over all nodes in the tree"""
