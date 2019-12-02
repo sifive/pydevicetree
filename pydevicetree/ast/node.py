@@ -403,8 +403,9 @@ class Devicetree(Node):
         for node in self.children:
             node.parent = self
 
-        reference_nodes = filter(lambda node: isinstance(node, NodeReference), self.all_nodes())
-        for refnode in cast(List[NodeReference], reference_nodes):
+        reference_nodes = self.filter(lambda n: isinstance(n, NodeReference))
+        for refnode in reference_nodes:
+            refnode = cast(NodeReference, refnode)
             node = refnode.resolve_reference(self)
 
             if refnode.parent:
