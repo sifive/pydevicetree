@@ -20,9 +20,11 @@ node_path = p.Combine(p.Literal("/") + \
 path_reference = p.Literal("&{").suppress() + node_path + p.Literal("}").suppress()
 label_reference = p.Literal("&").suppress() + label
 reference = path_reference ^ label_reference
-directive = p.QuotedString(quoteChar="/", unquoteResults=False) + \
-        p.Optional(string ^ property_name ^ node_name ^ reference ^ \
-                (integer * 2)) + p.Literal(";").suppress()
+include_directive = p.Literal("/include/") + p.QuotedString(quoteChar='"')
+generic_directive = p.QuotedString(quoteChar="/", unquoteResults=False) + \
+        p.Optional(string ^ property_name ^ node_name ^ reference ^ (integer * 2)) + \
+        p.Literal(";").suppress()
+directive = include_directive ^ generic_directive
 
 operator = p.oneOf("~ ! * / + - << >> < <= > >= == != & ^ | && ||")
 arith_expr = p.Forward()

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 /dts-v1/;
 
-/include/ "overlay.dtsi";
+/include/ "overlay.dtsi"
 
 / {
 	#address-cells = <1>;

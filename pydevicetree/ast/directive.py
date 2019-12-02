@@ -4,7 +4,7 @@
 
 from typing import Any
 
-from pydevicetree.ast.helpers import formatLevel
+from pydevicetree.ast.helpers import formatLevel, wrapStrings
 
 class Directive:
     """Represents a Devicetree directive
@@ -36,6 +36,11 @@ class Directive:
 
     def to_dts(self, level: int = 0) -> str:
         """Format the Directive in Devicetree Source format"""
-        if self.option:
-            return formatLevel(level, "%s %s;\n" % (self.directive, self.option))
+        if isinstance(self.option, list):
+            return formatLevel(level, "%s %s;\n" % (self.directive,
+                                                    wrapStrings(self.option)))
+        if isinstance(self.option, str):
+            if self.directive == "/include/":
+                return formatLevel(level, "%s \"%s\"\n" % (self.directive, self.option))
+            return formatLevel(level, "%s \"%s\";\n" % (self.directive, self.option))
         return formatLevel(level, "%s;\n" % self.directive)

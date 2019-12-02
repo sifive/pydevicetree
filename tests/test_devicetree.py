@@ -91,6 +91,10 @@ class TestDevicetree(unittest.TestCase):
         self.assertEqual(type(delete_property), Node)
         self.assertEqual(delete_property.get_field("delete-me"), None)
 
+    def test_include_directive(self):
+        tree = Devicetree.from_dts("/include/ \"foo.dtsi\"")
+        self.assertEqual(tree.directives[0].to_dts(), "/include/ \"foo.dtsi\"\n")
+
     def test_get_by_label(self):
         cpu0 = self.tree.get_by_label("cpu0")
         self.assertEqual(cpu0.name, "cpu")
