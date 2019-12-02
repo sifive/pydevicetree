@@ -163,6 +163,8 @@ def recurseIncludeFiles(elements, pwd):
 
                 elements += parseElements(contents)
 
+                del elements[elements.asList().index(e)]
+
 def parseElements(dts, pwd="", followIncludes=False):
     """Parses a string into a list of elements"""
     elements = grammar.devicetree.parseString(dts, parseAll=True)
