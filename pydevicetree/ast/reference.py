@@ -33,16 +33,13 @@ class Label:
 
 class Path:
     """A Path uniquely identifies a Node by its parents and (optionally) unit address"""
-    def __init__(self, path: str, address: Optional[int] = None):
+    def __init__(self, path: str):
         """Create a path out of a string"""
-        self.path = list(filter(lambda s: s != '', path.split('/')))
-        self.address = address
+        self.path = path
 
     def to_dts(self) -> str:
         """Format the Path in Devicetree Source format"""
-        if self.address:
-            return '/%s@%x' % ('/'.join(self.path), self.address)
-        return '/' + '/'.join(self.path)
+        return self.path
 
     def __repr__(self) -> str:
         return "<Path " + self.to_dts() + ">"
@@ -51,19 +48,15 @@ class Path:
         if isinstance(other, Path):
             return self.to_dts() == other.to_dts()
         if isinstance(other, str):
-            if ("@" not in other) and (self.address is not None):
-                return self.to_dts().split("@")[0] == other
             return self.to_dts() == other
         return False
 
     def __iter__(self) -> Iterator[str]:
-        return iter(['/'] + self.path)
+        return iter(self.path.split("/"))
 
     def replace(self, old: str, new: str) -> 'Path':
         """Replace any elements of the path which match 'old' with a new element 'new'"""
-        path = [e.replace(old, new) for e in self.path]
-        return Path('/' + '/'.join(path), self.address)
-
+        return Path(self.path.replace(old, new))
 
 class Reference:
     """A Reference is a Devicetree construct which points to a Node in the tree

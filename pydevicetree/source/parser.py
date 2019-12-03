@@ -77,9 +77,14 @@ def transformLabel(string, location, tokens):
 
 def transformPath(string, location, tokens):
     """Transforms a ParseResult into a Path"""
-    if tokens.address:
-        return Path(tokens.path, tokens.address)
-    return Path(tokens.path)
+    path = ""
+    for handle in tokens.path[0].split("/"):
+        if "@" in handle:
+            node, address = handle.split("@")
+            path += "/%s@%x" % (node, int(address))
+        elif handle != "":
+            path += "/" + handle
+    return Path(path)
 
 def transformPathReference(string, location, tokens):
     """Transforms a ParseResult into a PathReference"""
