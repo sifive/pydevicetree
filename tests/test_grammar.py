@@ -14,11 +14,13 @@ class TestGrammar(unittest.TestCase):
     def test_node_path(self):
         from pydevicetree.ast import Path
         self.assertEqual(node_path.parseString("/path/to/foo@deadbeef")[0], Path("/path/to/foo@deadbeef"))
+        self.assertEqual(node_path.parseString("/path/to@0/foo@deadbeef")[0], Path("/path/to@0/foo@deadbeef"))
 
     def test_reference(self):
         from pydevicetree.ast import Label, Path
         self.assertEqual(reference.parseString("&mylabel")[0].label, Label("mylabel"))
         self.assertEqual(reference.parseString("&{/path/to/foo@deadbeef}")[0].path, Path("/path/to/foo@deadbeef"))
+        self.assertEqual(reference.parseString("&{/path/to@0/foo@deadbeef}")[0].path, Path("/path/to@0/foo@deadbeef"))
 
     def test_arith_expr(self):
         self.assertEqual(arith_expr.parseString("(1 + 2)").asList(), [3])

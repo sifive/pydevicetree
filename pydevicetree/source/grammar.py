@@ -9,14 +9,14 @@ p.ParserElement.enablePackrat()
 node_name = p.Word(p.alphanums + ",.-+_") ^ p.Literal("/")
 integer = p.pyparsing_common.integer ^ (p.Literal("0x").suppress() + p.pyparsing_common.hex_integer)
 unit_address = p.pyparsing_common.hex_integer
+node_handle = node_name("node_name") + p.Optional(p.Literal("@") + unit_address("address"))
 property_name = p.Word(p.alphanums + ",.-_+?#")
 label = p.Word(p.alphanums + "_").setResultsName("label")
 label_creation = p.Combine(label + p.Literal(":"))
 string = p.QuotedString(quoteChar='"')
 stringlist = p.delimitedList(string)
 node_path = p.Combine(p.Literal("/") + \
-        p.delimitedList(node_name, delim="/", combine=True)).setResultsName("path") + \
-        p.Optional(p.Literal("@").suppress() + unit_address("address"))
+        p.delimitedList(node_handle, delim="/", combine=True)).setResultsName("path")
 path_reference = p.Literal("&{").suppress() + node_path + p.Literal("}").suppress()
 label_reference = p.Literal("&").suppress() + label
 reference = path_reference ^ label_reference
@@ -43,8 +43,7 @@ property_values = p.delimitedList(property_values ^ cell_array ^ bytestring ^ st
 property_assignment = property_name("property_name") + p.Optional(p.Literal("=").suppress() + \
         (property_values)).setResultsName("value") + p.Literal(";").suppress()
 
-node_opener = p.Optional(label_creation) + node_name("node_name") + \
-        p.Optional(p.Literal("@").suppress() + unit_address("address")) + p.Literal("{").suppress()
+node_opener = p.Optional(label_creation) + node_handle + p.Literal("{").suppress()
 node_reference_opener = reference + p.Literal("{").suppress()
 node_closer = p.Literal("}").suppress() + p.Literal(";").suppress()
 node_definition = p.Forward()
