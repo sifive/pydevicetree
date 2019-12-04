@@ -34,7 +34,7 @@ class PropertyValues:
 
     def to_dts(self, formatHex: bool = False) -> str:
         """Format the values in Devicetree Source format"""
-        return " ".join(wrapStrings(self.values, formatHex))
+        return ", ".join(wrapStrings(self.values, formatHex))
 
     def __getitem__(self, key) -> Any:
         return self.values[key]
