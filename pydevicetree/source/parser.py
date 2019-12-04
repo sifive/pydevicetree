@@ -28,6 +28,8 @@ def transformPropertyAssignment(string, location, tokens):
             return Property(tokens.property_name, v)
         if isinstance(v, StringList):
             return Property(tokens.property_name, v)
+        if isinstance(v, Reference):
+            return Property(tokens.property_name, v)
 
     return Property(tokens.property_name, PropertyValues([]))
 

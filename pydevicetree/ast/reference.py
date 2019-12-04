@@ -74,7 +74,7 @@ class Reference:
     This is the parent class for both types of references, LabelReference and PathReference
     """
     # pylint: disable=no-self-use
-    def to_dts(self) -> str:
+    def to_dts(self, formatHex: bool = False) -> str:
         """Format the Reference in Devicetree Source format"""
         return ""
 
@@ -90,7 +90,7 @@ class LabelReference(Reference):
     def __repr__(self) -> str:
         return "<LabelReference " + self.to_dts() + ">"
 
-    def to_dts(self) -> str:
+    def to_dts(self, formatHex: bool = False) -> str:
         """Format the LabelReference in Devicetree Source format"""
         return "&" + self.label.name
 
@@ -106,6 +106,6 @@ class PathReference(Reference):
     def __repr__(self) -> str:
         return "<PathReference " + self.to_dts() + ">"
 
-    def to_dts(self) -> str:
+    def to_dts(self, formatHex: bool = False) -> str:
         """Format the PathReference in Devicetree Source format"""
         return "&{" + self.path.to_dts() + "}"

@@ -39,7 +39,8 @@ bytestring = p.Literal("[").suppress() + \
         (p.OneOrMore(p.Word(p.hexnums, exact=2) ^ label_creation.suppress())) + \
         p.Literal("]").suppress()
 property_values = p.Forward()
-property_values = p.delimitedList(property_values ^ cell_array ^ bytestring ^ stringlist)
+property_values = p.delimitedList(property_values ^ cell_array ^ bytestring ^ stringlist ^ \
+                                  reference)
 property_assignment = property_name("property_name") + p.Optional(p.Literal("=").suppress() + \
         (property_values)).setResultsName("value") + p.Literal(";").suppress()
 
