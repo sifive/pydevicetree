@@ -1,0 +1,17 @@
+name: pydevicetree-require-dco
+
+on: pull_request
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Fetch history
+        run:
+          git fetch --prune --unshallow
+      - name: Check DCO
+        run:
+          ./scripts/check-dco.sh origin/${{ github.base_ref }} origin/${{ github.head_ref }}
+
