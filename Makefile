@@ -29,7 +29,7 @@ upload: venv/bin/activate dist
 
 .PHONY: test-types
 test-types: venv/bin/activate
-	. $< && mypy -m pydevicetree
+	. $< && mypy -p pydevicetree
 test: test-types
 
 .PHONY: test-lint

@@ -2,7 +2,7 @@
 # Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Union, Iterator, Optional
+from typing import Union, Iterator
 
 class Label:
     """A Label is a unique identifier for a Node
