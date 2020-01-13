@@ -162,6 +162,7 @@ class Node:
         self.children = new_children
 
         for n in self.children:
+            n.parent = self
             n.merge_tree()
 
     def merge(self, other: 'Node'):
