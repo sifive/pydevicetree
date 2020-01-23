@@ -47,6 +47,11 @@ test-unit: venv/bin/activate $(UNIT_TESTS)
 	. $< && python3 -m unittest $(UNIT_TESTS)
 test: test-unit
 
+.PHONY: test-cache-size-bound
+test-cache-size-bound: venv/bin/activate $(UNIT_TESTS)
+	PYDEVICETREE_CACHE_SIZE_BOUND=128 . $< && python3 -m unittest $(UNIT_TESTS)
+test: test-cache-size-bound
+
 INTEGRATION_TESTS = tests/test_full_trees.py
 
 .PHONY: test-integration

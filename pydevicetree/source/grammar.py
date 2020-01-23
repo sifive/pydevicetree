@@ -2,9 +2,22 @@
 # Copyright (c) 2019 SiFive Inc.
 # SPDX-License-Identifier: Apache-2.0
 
+import os
+import sys
+
 import pyparsing as p # type: ignore
 
-p.ParserElement.enablePackrat()
+ENV_CACHE_OPTION = "PYDEVICETREE_CACHE_SIZE_BOUND"
+
+cache_bound = None
+if ENV_CACHE_OPTION in os.environ:
+    option = os.environ[ENV_CACHE_OPTION]
+    if option != "None":
+        try:
+            cache_bound = int(option)
+        except ValueError:
+            print("%s requires a valid integer" % ENV_CACHE_OPTION, file=sys.stderr)
+p.ParserElement.enablePackrat(cache_bound)
 
 node_name = p.Word(p.alphanums + ",.-+_") ^ p.Literal("/")
 integer = p.pyparsing_common.integer ^ (p.Literal("0x").suppress() + p.pyparsing_common.hex_integer)
@@ -59,6 +72,5 @@ devicetree.ignore(p.cStyleComment)
 devicetree.ignore("//" + p.SkipTo(p.lineEnd))
 
 if __name__ == "__main__":
-    import sys
     if len(sys.argv) > 1:
         devicetree.parseFile(sys.argv[1]).pprint()
