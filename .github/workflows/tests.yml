@@ -32,6 +32,9 @@ jobs:
       - name: Run unit tests
         run:
           make test-unit
+      - name: Run unit tests with bounded parser cache
+        run:
+          make test-cache-size-bound
       - name: Run integration tests
         run:
           make test-integration
