@@ -17,7 +17,10 @@ if ENV_CACHE_OPTION in os.environ:
             cache_bound = int(option)
         except ValueError:
             print("%s requires a valid integer" % ENV_CACHE_OPTION, file=sys.stderr)
-p.ParserElement.enablePackrat(cache_bound)
+
+# Don't typecheck this line, because the type annotation for enable_packrat is
+# incorrect, and won't accept None, even though this is allowed and documented.
+p.ParserElement.enable_packrat(cache_bound)  # type: ignore
 
 node_name = p.Word(p.alphanums + ",.-+_") ^ p.Literal("/")
 integer = p.pyparsing_common.integer ^ (p.Literal("0x").suppress() + p.pyparsing_common.hex_integer)
@@ -43,7 +46,7 @@ operator = p.oneOf("~ ! * / + - << >> < <= > >= == != & ^ | && ||")
 arith_expr = p.Forward()
 ternary_element = arith_expr ^ integer
 ternary_expr = ternary_element + p.Literal("?") + ternary_element + p.Literal(":") + ternary_element
-arith_expr = p.nestedExpr(content=(p.OneOrMore(operator ^ integer) ^ ternary_expr))
+arith_expr <<= p.nestedExpr(content=(p.OneOrMore(operator ^ integer) ^ ternary_expr))
 
 cell_array = p.Literal("<").suppress() + \
         p.ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation.suppress()) + \
@@ -52,8 +55,8 @@ bytestring = p.Literal("[").suppress() + \
         (p.OneOrMore(p.Word(p.hexnums, exact=2) ^ label_creation.suppress())) + \
         p.Literal("]").suppress()
 property_values = p.Forward()
-property_values = p.delimitedList(property_values ^ cell_array ^ bytestring ^ stringlist ^ \
-                                  reference)
+property_values <<= p.delimitedList(property_values ^ cell_array ^ bytestring ^ stringlist ^ \
+                                   reference)
 property_assignment = property_name("property_name") + p.Optional(p.Literal("=").suppress() + \
         (property_values)).setResultsName("value") + p.Literal(";").suppress()
 
