@@ -21,7 +21,7 @@ p.ParserElement.enablePackrat(cache_bound)
 
 node_name = p.Word(p.alphanums + ",.-+_") ^ p.Literal("/")
 integer = p.pyparsing_common.integer ^ (p.Literal("0x").suppress() + p.pyparsing_common.hex_integer)
-unit_address = p.pyparsing_common.hex_integer
+unit_address = p.pyparsing_common.hex_integer ^ (p.Literal("0x").suppress() + p.pyparsing_common.hex_integer) ^ p.Word(p.alphanums + "_,")
 node_handle = node_name("node_name") + p.Optional(p.Literal("@") + unit_address("address"))
 property_name = p.Word(p.alphanums + ",.-_+?#")
 label = p.Word(p.alphanums + "_").setResultsName("label")
