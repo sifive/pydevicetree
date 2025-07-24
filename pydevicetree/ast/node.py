@@ -247,12 +247,14 @@ class Node:
 
         return nodes
 
-    def match(self, compatible: Pattern, func: MatchCallback = None) -> List['Node']:
+    def match(self, compatible: Pattern | str, func: MatchCallback = None) -> List['Node']:
         """Get a node from the subtree by compatible string
 
         Accepts a regular expression to match one of the strings in the compatible property.
         """
-        regex = re.compile(compatible)
+        regex = compatible
+        if isinstance(regex, str):
+            regex = re.compile(regex)
 
         def match_compat(node: Node) -> bool:
             compatibles = node.get_fields("compatible")
