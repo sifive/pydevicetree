@@ -45,7 +45,8 @@ ternary_element = arith_expr ^ integer
 ternary_expr = ternary_element + p.Literal("?") + ternary_element + p.Literal(":") + ternary_element
 arith_expr = p.nestedExpr(content=(p.OneOrMore(operator ^ integer) ^ ternary_expr))
 
-cell_array = p.Literal("<").suppress() + \
+cell_array = p.Optional(p.Literal("/bits/").suppress() + integer("bits"), default=32) + \
+        p.Literal("<").suppress() + \
         p.ZeroOrMore(integer ^ arith_expr ^ string ^ reference ^ label_creation.suppress()) + \
         p.Literal(">").suppress()
 bytestring = p.Literal("[").suppress() + \

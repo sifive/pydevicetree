@@ -81,5 +81,52 @@ class TestGrammar(unittest.TestCase):
         self.assertEqual(dtsv1.directive, "/dts-v1/")
         self.assertEqual(dtsv1.option, None)
 
+    def test_bits_cell_array(self):
+        from pydevicetree.ast import CellArray
+
+        # /bits/ 8
+        result = bits_cell_array.parseString("/bits/ 8 <17 12>")[0]
+        self.assertIsInstance(result, CellArray)
+        self.assertEqual(result.bits, 8)
+        self.assertEqual(result.values, [17, 12])
+        self.assertEqual(result.to_dts(), "/bits/ 8 <17 12>")
+
+        # /bits/ 16
+        result = bits_cell_array.parseString("/bits/ 16 <0x1234 0x5678>")[0]
+        self.assertIsInstance(result, CellArray)
+        self.assertEqual(result.bits, 16)
+        self.assertEqual(result.values, [0x1234, 0x5678])
+
+        # /bits/ 64
+        result = bits_cell_array.parseString("/bits/ 64 <0x0000000100000000>")[0]
+        self.assertIsInstance(result, CellArray)
+        self.assertEqual(result.bits, 64)
+        self.assertEqual(result.values, [0x100000000])
+        self.assertEqual(result.to_dts(), "/bits/ 64 <4294967296>")
+
+        # /bits/ 32 (explicit default)
+        result = bits_cell_array.parseString("/bits/ 32 <1 2 3>")[0]
+        self.assertIsInstance(result, CellArray)
+        self.assertEqual(result.bits, 32)
+        self.assertEqual(result.to_dts(), "<1 2 3>")
+
+    def test_bits_property_assignment(self):
+        from pydevicetree.ast import CellArray
+
+        prop = property_assignment.parseString("interrupts = /bits/ 8 <17 12>;")[0]
+        self.assertEqual(prop.name, "interrupts")
+        self.assertIsInstance(prop.values, CellArray)
+        self.assertEqual(prop.values.bits, 8)
+        self.assertEqual(prop.values.values, [17, 12])
+
+    def test_bits_in_node(self):
+        from pydevicetree.ast import Node, CellArray
+        node = node_definition.parseString(
+            'my-node { my-prop = /bits/ 16 <0x1234 0x5678>; };')[0]
+        self.assertEqual(type(node), Node)
+        self.assertEqual(node.properties[0].name, "my-prop")
+        self.assertIsInstance(node.properties[0].values, CellArray)
+        self.assertEqual(node.properties[0].values.bits, 16)
+
 if __name__ == "__main__":
     unittest.main()
