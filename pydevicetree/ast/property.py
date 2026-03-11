@@ -70,17 +70,38 @@ class CellArray(PropertyValues):
     The interpretation of each element of a CellArray is device-dependent. For example, the `reg`
     property encodes a CellArray as a list of tuples (base address, size), while the `interrupts`
     property encodes a CellArray as simply a list of interrupt line numbers.
+
+    The optional `bits` parameter supports the /bits/ directive, which changes the
+    element size from the default 32-bit to 8, 16, 32, or 64-bit. For example:
+
+        interrupts = /bits/ 8 <17 0xc>;
+        clock-frequency = /bits/ 64 <0x0000000100000000>;
     """
-    def __init__(self, cells: List[Any]):
-        """Create a CellArray object"""
+    VALID_BITS = (8, 16, 32, 64)
+
+    def __init__(self, cells: List[Any], bits: int = 32):
+        """Create a CellArray object
+
+        Args:
+            cells: list of integer cell values
+            bits: element size in bits (8, 16, 32, or 64). Default is 32.
+        """
+        if bits not in self.VALID_BITS:
+            raise ValueError("/bits/ size must be one of %s, got %d" % (self.VALID_BITS, bits))
+        self.bits = bits
         PropertyValues.__init__(self, cells)
 
     def __repr__(self) -> str:
+        if self.bits != 32:
+            return "<CellArray /bits/ %d " % self.bits + self.values.__repr__() + ">"
         return "<CellArray " + self.values.__repr__() + ">"
 
     def to_dts(self, formatHex: bool = False) -> str:
         """Format the cell array in Devicetree Source format"""
-        return "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
+        inner = "<" + " ".join(wrapStrings(self.values, formatHex)) + ">"
+        if self.bits != 32:
+            return "/bits/ %d %s" % (self.bits, inner)
+        return inner
 
 class RegArray(CellArray):
     """A RegArray is the CellArray assigned to the reg property"""

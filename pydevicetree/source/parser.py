@@ -71,7 +71,7 @@ def transformBytestring(string, location, tokens):
 
 def transformCellArray(string, location, tokens):
     """Transforms a ParseResult into a CellArray"""
-    return CellArray(tokens.asList())
+    return CellArray(tokens[1:], tokens[0])
 
 def transformLabel(string, location, tokens):
     """Transforms a ParseResult into a Label"""
